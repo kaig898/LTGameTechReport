@@ -41,9 +41,13 @@
         .edit-btn { background: var(--admin-gold); color: #000; }
         .del-btn { background: var(--danger); color: #fff; }
 
+        /* 進度標籤 */
+        .progress-tag { position: absolute; top: 12px; right: 12px; font-size: 0.8rem; font-family: 'Orbitron'; color: var(--success); font-weight: bold; text-shadow: 0 0 5px var(--success); z-index: 3; }
         .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
-        .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.6); }
-        .progress-bar { height: 100%; background: var(--success); transition: width 0.6s; }
+        
+        /* 進度條樣式 */
+        .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.6); z-index: 2; }
+        .progress-bar { height: 100%; background: var(--success); transition: width 0.6s ease-in-out; box-shadow: 0 0 10px var(--success); }
 
         .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; text-align: left; }
         .edit-overlay label { font-size: 0.7rem; color: var(--admin-gold); font-weight: bold; margin-left: 5px; }
@@ -56,7 +60,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1 id="header-title" onclick="editGlobalConfig('title')">LTGAME MASTER OPS</h1>
+        <h1 id="header-title" onclick="editGlobalConfig('title')">PROJECT MANAGEMENT</h1>
         <div id="admin-bar">
             <input type="text" id="new-name" placeholder="Item Name">
             <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ FOLDER</button>
@@ -80,12 +84,12 @@
     const db = firebase.database();
     
     let allData = {}, path = [];
-    let config = { title: "LTGAME MASTER OPS", rootName: "PROJECT" };
+    let config = { title: "PROJECT MANAGEMENT", rootName: "PROJECT" };
 
     db.ref('v15_config').on('value', s => {
         if(s.val()) {
             config = s.val();
-            document.getElementById('header-title').innerText = config.title || "LTGAME MASTER OPS";
+            document.getElementById('header-title').innerText = config.title || "PROJECT MANAGEMENT";
             document.getElementById('root-btn-text').innerText = config.rootName || "PROJECT";
         }
         render();
@@ -125,6 +129,8 @@
             if(key === '_meta') return;
             const item = curr[key], meta = item._meta || {}, isReport = meta.type === 'report';
             const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
+            const progress = isReport ? calculateProgress(item) : 0;
+
             const div = document.createElement('div');
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
@@ -133,17 +139,37 @@
                 if (isReport) { window.location.href = `${meta.targetHtml || 'terminal.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
                 else { path.push(key); render(); }
             };
-            div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>${isReport ? `<div class="progress-container"><div class="progress-bar" style="width:${calculateProgress(item)}%"></div></div>` : ''}`;
+            
+            div.innerHTML = `
+                <div class="admin-btns">
+                    <div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div>
+                    <div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div>
+                </div>
+                <div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div>
+                ${isReport ? `<div class="progress-tag">${progress}%</div>` : ''}
+                <div class="name-text">${key}</div>
+                ${isReport ? `
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width:${progress}%"></div>
+                    </div>
+                ` : ''}
+            `;
             v.appendChild(div);
         });
     }
 
+    function calculateProgress(node) {
+        if (!node.tasks) return 0;
+        const tasksArray = Object.values(node.tasks);
+        if (tasksArray.length === 0) return 0;
+        const completed = tasksArray.filter(t => t.status === "OK").length;
+        return Math.round((completed / tasksArray.length) * 100);
+    }
+
     function jumpTo(i) { path = path.slice(0, i + 1); render(); }
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-    function calculateProgress(n) { if (!n.tasks) return 0; const t = Object.values(n.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
     
     function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", targetHtml: "terminal.html", displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
-    
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
     
     function showEdit(e, key) {
