@@ -9,26 +9,28 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
         :root { --bg: #02040a; --text: #e2e8f0; --admin-gold: #f59e0b; --danger: #ff003c; --success: #39ff14; --folder-blue: #00f2ff; }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; position: relative; min-height: 95vh; }
         .container { max-width: 1200px; margin: 0 auto; }
         .header { text-align: center; margin-bottom: 10px; }
-        
-        /* 秘密後門：標題平時無異樣，長按會變色 */
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; cursor: default; user-select: none; transition: color 0.5s; }
-        h1.triggering { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; }
         
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
-        input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; font-size: 1rem; }
+        input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
+
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
         .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; }
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
         .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
+
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
         .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
+
+        /* 管理者專屬 UI */
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
@@ -37,24 +39,34 @@
         .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
         .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.6); }
         .progress-bar { height: 100%; background: var(--success); transition: width 0.6s; }
+
         .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; }
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
+
+        /* --- 超級隱形按鈕 --- */
+        #ghost-trigger {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            background: transparent;
+            cursor: default;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <!-- 秘密標題：長按觸發 -->
-        <h1 id="secret-title">LTGAME MASTER OPS</h1>
-        
+        <h1>LTGAME MASTER OPS</h1>
         <div id="admin-bar">
-            <input type="text" id="new-name" placeholder="Item Name" style="width: 180px;">
+            <input type="text" id="new-name" placeholder="Item Name">
             <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ FOLDER</button>
             <button onclick="addItem('report')" style="background:var(--success); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ REPORT</button>
             <button onclick="logoutAdmin()" style="background:#444; color:#fff; border:none; padding:10px; cursor:pointer; margin-left:10px; border-radius:4px;">EXIT ADMIN</button>
         </div>
-
         <div class="nav-bar">
             <button class="nav-btn-home" onclick="jumpTo(-1)">HOME</button>
             <div id="path-display"></div>
@@ -63,42 +75,15 @@
     <div id="view" class="grid"></div>
 </div>
 
-<script>
-    // 隱藏 Token 檢查
-    let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
+<!-- 呢個就係隱形掣 -->
+<div id="ghost-trigger" onclick="window.location.href='admin.html'"></div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA",
-        databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/"
-    };
+<script>
+    let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
+    const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    let allData = {};
-    let path = [];
-
-    // --- 強化的方案 B 邏輯：長按標題跳轉 ---
-    let pressTimer;
-    const title = document.getElementById('secret-title');
-
-    function startPress() {
-        title.classList.add('triggering');
-        pressTimer = setTimeout(() => {
-            // 跳轉去你個秘密鑰匙頁面 (名可以隨便改，人哋估唔到)
-            window.location.href = "sys_kernel_v16.html";
-        }, 3000); // 撳住 3 秒先跳轉
-    }
-
-    function cancelPress() {
-        clearTimeout(pressTimer);
-        title.classList.remove('triggering');
-    }
-
-    title.addEventListener('mousedown', startPress);
-    title.addEventListener('mouseup', cancelPress);
-    title.addEventListener('mouseleave', cancelPress);
-    title.addEventListener('touchstart', startPress); // 手機長按
-    title.addEventListener('touchend', cancelPress);
+    let allData = {}, path = [];
 
     db.ref('v15_data').on('value', s => { allData = s.val() || {}; render(); });
 
@@ -114,35 +99,30 @@
 
         Object.keys(curr).forEach(key => {
             if(key === '_meta') return;
-            const item = curr[key];
-            const meta = item._meta || {};
-            const isReport = meta.type === 'report';
+            const item = curr[key], meta = item._meta || {}, isReport = meta.type === 'report';
             const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
             const div = document.createElement('div');
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
             div.onclick = (e) => {
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
-                if (isReport) {
-                    window.location.href = `${meta.targetHtml || 'terminal.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`;
-                } else {
-                    path.push(key); render();
-                }
+                if (isReport) { window.location.href = `${meta.targetHtml || 'terminal.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
+                else { path.push(key); render(); }
             };
             div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>${isReport ? `<div class="progress-container"><div class="progress-bar" style="width:${calculateProgress(item)}%"></div></div>` : ''}`;
             v.appendChild(div);
         });
     }
 
-    function jumpTo(index) { path = path.slice(0, index + 1); render(); }
-    function calculateProgress(node) { if (!node.tasks) return 0; const t = Object.values(node.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
+    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
+    function calculateProgress(n) { if (!n.tasks) return 0; const t = Object.values(n.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
     
-    // --- Admin 操作 Function (略，請沿用之前版本的 showEdit, saveEdit, addItem, delItem) ---
-    function addItem(type) { if(!isAdmin) return; const name = document.getElementById('new-name').value.trim(); if(!name) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(name).update({ _meta: { type: type, color: type==='report'?"#39ff14":"#00f2ff", targetHtml: (type==='report'?"terminal.html":""), displayLabel: (type==='report'?"REPORT":"FOLDER") } }); }
+    // Admin 操作
+    function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-    function showEdit(e, key) { if(!isAdmin) return; e.stopPropagation(); const parent = e.target.closest('.card'); let curr = allData; path.forEach(p => curr = curr[p]); const meta = curr[key]._meta || {}; const overlay = document.createElement('div'); overlay.className = 'edit-overlay'; overlay.innerHTML = `<label>NAME</label><input type="text" id="ed-n" value="${key}"><label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}"><label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select><label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}"><label>COLOR</label><input type="color" id="ed-c" value="${meta.color}"><div class="overlay-btns"><button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button><button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button></div>`; parent.appendChild(overlay); }
-    function saveEdit(e, oldKey) { e.stopPropagation(); const newN = document.getElementById('ed-n').value.trim(); const newL = document.getElementById('ed-l').value.trim(); const newT = document.getElementById('ed-t').value; const newH = document.getElementById('ed-h').value.trim(); const newC = document.getElementById('ed-c').value; if(!newN || !isAdmin) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(oldKey).once('value', s => { let val = s.val() || {}; if(!val._meta) val._meta = {}; val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : ""; ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove(); }); }
+    function showEdit(e, key) { e.stopPropagation(); const parent = e.target.closest('.card'); let curr = allData; path.forEach(p => curr = curr[p]); const meta = curr[key]._meta || {}; const overlay = document.createElement('div'); overlay.className = 'edit-overlay'; overlay.innerHTML = `<label>NAME</label><input type="text" id="ed-n" value="${key}"><label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}"><label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select><label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}"><label>COLOR</label><input type="color" id="ed-c" value="${meta.color}"><div class="overlay-btns"><button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button><button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button></div>`; parent.appendChild(overlay); }
+    function saveEdit(e, oldKey) { e.stopPropagation(); const newN = document.getElementById('ed-n').value.trim(), newL = document.getElementById('ed-l').value.trim(), newT = document.getElementById('ed-t').value, newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value; if(!newN || !isAdmin) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(oldKey).once('value', s => { let val = s.val() || {}; if(!val._meta) val._meta = {}; val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : ""; ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove(); }); }
 </script>
 </body>
 </html>
