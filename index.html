@@ -9,8 +9,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
         :root { --bg: #02040a; --text: #e2e8f0; --admin-gold: #f59e0b; --danger: #ff003c; --success: #39ff14; --folder-blue: #00f2ff; }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; position: relative; min-height: 95vh; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; position: relative; min-height: 100vh; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 60px; } /* 留位畀粒隱形掣 */
         .header { text-align: center; margin-bottom: 10px; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; }
         
@@ -30,7 +30,6 @@
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
         .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
 
-        /* 管理者專屬 UI */
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
@@ -44,16 +43,16 @@
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
 
-        /* --- 超級隱形按鈕 --- */
+        /* --- 修正後的隱形按鈕 --- */
         #ghost-trigger {
             position: fixed;
             bottom: 0;
             right: 0;
-            width: 15px;
-            height: 15px;
-            background: transparent;
+            width: 50px; /* 加大感應區 */
+            height: 50px;
+            background: rgba(255, 255, 255, 0.01); /* 1% 極微色，方便你試位 */
             cursor: default;
-            z-index: 9999;
+            z-index: 999999; /* 確保在最頂層 */
         }
     </style>
 </head>
@@ -75,8 +74,8 @@
     <div id="view" class="grid"></div>
 </div>
 
-<!-- 呢個就係隱形掣 -->
-<div id="ghost-trigger" onclick="window.location.href='admin.html'"></div>
+<!-- 隱形掣 -->
+<div id="ghost-trigger" onclick="location.href='admin.html'"></div>
 
 <script>
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
@@ -118,7 +117,6 @@
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
     function calculateProgress(n) { if (!n.tasks) return 0; const t = Object.values(n.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
     
-    // Admin 操作
     function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
     function showEdit(e, key) { e.stopPropagation(); const parent = e.target.closest('.card'); let curr = allData; path.forEach(p => curr = curr[p]); const meta = curr[key]._meta || {}; const overlay = document.createElement('div'); overlay.className = 'edit-overlay'; overlay.innerHTML = `<label>NAME</label><input type="text" id="ed-n" value="${key}"><label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}"><label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select><label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}"><label>COLOR</label><input type="color" id="ed-c" value="${meta.color}"><div class="overlay-btns"><button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button><button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button></div>`; parent.appendChild(overlay); }
