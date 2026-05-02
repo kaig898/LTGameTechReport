@@ -9,8 +9,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
         :root { --bg: #02040a; --text: #e2e8f0; --admin-gold: #f59e0b; --danger: #ff003c; --success: #39ff14; --folder-blue: #00f2ff; }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; position: relative; min-height: 100vh; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 60px; } /* 留位畀粒隱形掣 */
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
         .header { text-align: center; margin-bottom: 10px; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; }
         
@@ -30,6 +30,7 @@
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
         .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
 
+        /* Admin 專屬顯示 */
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
@@ -43,16 +44,16 @@
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
 
-        /* --- 修正後的隱形按鈕 --- */
+        /* --- 修正版：隱形按鈕 (全兼容) --- */
         #ghost-trigger {
             position: fixed;
-            bottom: 0;
-            right: 0;
-            width: 50px; /* 加大感應區 */
-            height: 50px;
-            background: rgba(255, 255, 255, 0.01); /* 1% 極微色，方便你試位 */
-            cursor: default;
-            z-index: 999999; /* 確保在最頂層 */
+            bottom: 2px;  /* 避開電腦捲軸 */
+            right: 2px;   /* 避開電腦捲軸 */
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.02); /* 2% 微色，電腦睇唔到咁滯，但方便你試 */
+            cursor: pointer; /* 電腦版指住會變手指，方便你確認位 */
+            z-index: 2147483647; /* 數字最大化，確保一定喺最頂 */
         }
     </style>
 </head>
@@ -74,8 +75,8 @@
     <div id="view" class="grid"></div>
 </div>
 
-<!-- 隱形掣 -->
-<div id="ghost-trigger" onclick="location.href='admin.html'"></div>
+<!-- 呢個位就係電腦版嘅入口 -->
+<div id="ghost-trigger" title="Admin Access" onclick="location.href='admin.html'"></div>
 
 <script>
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
