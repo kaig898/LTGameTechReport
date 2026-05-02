@@ -12,15 +12,16 @@
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
         .header { text-align: center; margin-bottom: 10px; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; }
         
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
         input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
 
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
-        .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; }
+        .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; text-transform: uppercase; }
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
         .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
+        .path-sep { color: #555; margin: 0 5px; }
 
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -28,9 +29,8 @@
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
-        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
+        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; z-index: 2; color: #fff; text-transform: uppercase; }
 
-        /* Admin 專屬顯示 */
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
@@ -44,38 +44,31 @@
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
 
-        /* --- 修正版：隱形按鈕 (全兼容) --- */
-        #ghost-trigger {
-            position: fixed;
-            bottom: 2px;  /* 避開電腦捲軸 */
-            right: 2px;   /* 避開電腦捲軸 */
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.02); /* 2% 微色，電腦睇唔到咁滯，但方便你試 */
-            cursor: pointer; /* 電腦版指住會變手指，方便你確認位 */
-            z-index: 2147483647; /* 數字最大化，確保一定喺最頂 */
-        }
+        #ghost-trigger { position: fixed; bottom: 2px; right: 2px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.02); cursor: pointer; z-index: 2147483647; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
+        <!-- 標題可以喺呢度直接改名 -->
         <h1>LTGAME MASTER OPS</h1>
+        
         <div id="admin-bar">
             <input type="text" id="new-name" placeholder="Item Name">
             <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ FOLDER</button>
             <button onclick="addItem('report')" style="background:var(--success); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ REPORT</button>
             <button onclick="logoutAdmin()" style="background:#444; color:#fff; border:none; padding:10px; cursor:pointer; margin-left:10px; border-radius:4px;">EXIT ADMIN</button>
         </div>
+
         <div class="nav-bar">
-            <button class="nav-btn-home" onclick="jumpTo(-1)">HOME</button>
+            <!-- HOME 掣改名為 PROJECT -->
+            <button class="nav-btn-home" onclick="jumpTo(-1)">PROJECT</button>
             <div id="path-display"></div>
         </div>
     </div>
     <div id="view" class="grid"></div>
 </div>
 
-<!-- 呢個位就係電腦版嘅入口 -->
 <div id="ghost-trigger" title="Admin Access" onclick="location.href='admin.html'"></div>
 
 <script>
@@ -93,9 +86,11 @@
         document.getElementById('admin-bar').style.display = isAdmin ? 'block' : 'none';
         let curr = allData;
         path.forEach(p => { if(curr[p]) curr = curr[p]; });
+        
         const pathDiv = document.getElementById('path-display');
-        pathDiv.innerHTML = `<span class="path-link" onclick="jumpTo(-1)">MAIN</span>`;
-        path.forEach((p, index) => { pathDiv.innerHTML += ` > <span class="path-link" onclick="jumpTo(${index})">${p}</span>`; });
+        // 路徑起始名改為 PROJECT
+        pathDiv.innerHTML = `<span class="path-sep">[</span> <span class="path-link" onclick="jumpTo(-1)">PROJECT</span> <span class="path-sep">]</span>`;
+        path.forEach((p, index) => { pathDiv.innerHTML += ` <span class="path-sep">></span> <span class="path-link" onclick="jumpTo(${index})">${p}</span>`; });
 
         Object.keys(curr).forEach(key => {
             if(key === '_meta') return;
@@ -118,7 +113,7 @@
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
     function calculateProgress(n) { if (!n.tasks) return 0; const t = Object.values(n.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
     
-    function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
+    function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", targetHtml: (type==='report'?"terminal.html":""), displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
     function showEdit(e, key) { e.stopPropagation(); const parent = e.target.closest('.card'); let curr = allData; path.forEach(p => curr = curr[p]); const meta = curr[key]._meta || {}; const overlay = document.createElement('div'); overlay.className = 'edit-overlay'; overlay.innerHTML = `<label>NAME</label><input type="text" id="ed-n" value="${key}"><label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}"><label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select><label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}"><label>COLOR</label><input type="color" id="ed-c" value="${meta.color}"><div class="overlay-btns"><button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button><button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button></div>`; parent.appendChild(overlay); }
     function saveEdit(e, oldKey) { e.stopPropagation(); const newN = document.getElementById('ed-n').value.trim(), newL = document.getElementById('ed-l').value.trim(), newT = document.getElementById('ed-t').value, newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value; if(!newN || !isAdmin) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(oldKey).once('value', s => { let val = s.val() || {}; if(!val._meta) val._meta = {}; val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : ""; ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove(); }); }
