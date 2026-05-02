@@ -12,43 +12,32 @@
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; }
         .container { max-width: 1200px; margin: 0 auto; }
         .header { text-align: center; margin-bottom: 10px; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; }
         
-        /* 管理工具列 - 默認隱藏 */
+        /* 秘密後門：標題平時無異樣，長按會變色 */
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; cursor: default; user-select: none; transition: color 0.5s; }
+        h1.triggering { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
+        
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
         input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; font-size: 1rem; }
-        
-        .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; flex-wrap: wrap; }
+        .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
         .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; }
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
-        .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
-        .path-sep { color: #555; margin: 0 5px; }
-
+        .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-
-        /* 卡片與底圖效果 */
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
-        .card.report::after { content: ""; position: absolute; inset: 8px; border: 2px solid transparent; border-top-color: var(--success); border-left-color: var(--success); width: 15px; height: 15px; pointer-events: none; }
-        .corner-br { position: absolute; bottom: 8px; right: 8px; border-bottom: 2px solid var(--success); border-right: 2px solid var(--success); width: 15px; height: 15px; pointer-events: none; }
-        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; z-index: 2; color: #fff; text-transform: uppercase; }
-
-        /* 管理按鈕 - 只有 admin-active 類存在時顯示 */
+        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
-        .edit-btn { background: var(--admin-gold); color: #000; font-size: 18px; }
-        .del-btn { background: var(--danger); color: #fff; font-size: 18px; }
-
+        .edit-btn { background: var(--admin-gold); color: #000; }
+        .del-btn { background: var(--danger); color: #fff; }
         .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
-        .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.6); z-index: 2; }
+        .progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.6); }
         .progress-bar { height: 100%; background: var(--success); transition: width 0.6s; }
-
-        /* 編輯視窗 */
         .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; }
-        .edit-overlay label { font-size: 0.7rem; color: var(--admin-gold); font-weight: bold; margin-left: 5px; }
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
     </style>
@@ -56,7 +45,8 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>LTGAME MASTER OPS</h1>
+        <!-- 秘密標題：長按觸發 -->
+        <h1 id="secret-title">LTGAME MASTER OPS</h1>
         
         <div id="admin-bar">
             <input type="text" id="new-name" placeholder="Item Name" style="width: 180px;">
@@ -74,17 +64,12 @@
 </div>
 
 <script>
-    // --- 關鍵：檢查 Token ---
+    // 隱藏 Token 檢查
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
 
     const firebaseConfig = {
         apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA",
-        authDomain: "g2e-macau.firebaseapp.com",
-        databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/",
-        projectId: "g2e-macau",
-        storageBucket: "g2e-macau.firebasestorage.app",
-        messagingSenderId: "875548623135",
-        appId: "1:875548623135:web:b211f0b38c09c198e7f02a"
+        databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -92,21 +77,40 @@
     let allData = {};
     let path = [];
 
+    // --- 強化的方案 B 邏輯：長按標題跳轉 ---
+    let pressTimer;
+    const title = document.getElementById('secret-title');
+
+    function startPress() {
+        title.classList.add('triggering');
+        pressTimer = setTimeout(() => {
+            // 跳轉去你個秘密鑰匙頁面 (名可以隨便改，人哋估唔到)
+            window.location.href = "sys_kernel_v16.html";
+        }, 3000); // 撳住 3 秒先跳轉
+    }
+
+    function cancelPress() {
+        clearTimeout(pressTimer);
+        title.classList.remove('triggering');
+    }
+
+    title.addEventListener('mousedown', startPress);
+    title.addEventListener('mouseup', cancelPress);
+    title.addEventListener('mouseleave', cancelPress);
+    title.addEventListener('touchstart', startPress); // 手機長按
+    title.addEventListener('touchend', cancelPress);
+
     db.ref('v15_data').on('value', s => { allData = s.val() || {}; render(); });
 
     function render() {
         const v = document.getElementById('view'); v.innerHTML = '';
         document.body.classList.toggle('admin-active', isAdmin);
         document.getElementById('admin-bar').style.display = isAdmin ? 'block' : 'none';
-        
         let curr = allData;
         path.forEach(p => { if(curr[p]) curr = curr[p]; });
-
         const pathDiv = document.getElementById('path-display');
-        pathDiv.innerHTML = `<span class="path-sep">[</span> <span class="path-link" onclick="jumpTo(-1)">MAIN</span> <span class="path-sep">]</span>`;
-        path.forEach((p, index) => {
-            pathDiv.innerHTML += ` <span class="path-sep">></span> <span class="path-link" onclick="jumpTo(${index})">${p}</span>`;
-        });
+        pathDiv.innerHTML = `<span class="path-link" onclick="jumpTo(-1)">MAIN</span>`;
+        path.forEach((p, index) => { pathDiv.innerHTML += ` > <span class="path-link" onclick="jumpTo(${index})">${p}</span>`; });
 
         Object.keys(curr).forEach(key => {
             if(key === '_meta') return;
@@ -114,29 +118,18 @@
             const meta = item._meta || {};
             const isReport = meta.type === 'report';
             const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
-
             const div = document.createElement('div');
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
             div.onclick = (e) => {
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
                 if (isReport) {
-                    const target = meta.targetHtml || "terminal.html";
-                    const sep = target.includes('?') ? '&' : '?';
-                    window.location.href = `${target}${sep}p=${path.join(',')}&v=${key}&admin=${isAdmin}`;
+                    window.location.href = `${meta.targetHtml || 'terminal.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`;
                 } else {
                     path.push(key); render();
                 }
             };
-            div.innerHTML = `
-                <div class="admin-btns">
-                    <div class="tool-btn edit-btn" onclick="showEdit(event, '${key}')">⚙️</div>
-                    <div class="tool-btn del-btn" onclick="delItem(event, '${key}')">✕</div>
-                </div>
-                <div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div>
-                <div class="name-text">${key}</div>
-                ${isReport ? `<div class="corner-br"></div><div class="progress-container"><div class="progress-bar" style="width:${calculateProgress(item)}%"></div></div>` : ''}
-            `;
+            div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>${isReport ? `<div class="progress-container"><div class="progress-bar" style="width:${calculateProgress(item)}%"></div></div>` : ''}`;
             v.appendChild(div);
         });
     }
@@ -144,58 +137,12 @@
     function jumpTo(index) { path = path.slice(0, index + 1); render(); }
     function calculateProgress(node) { if (!node.tasks) return 0; const t = Object.values(node.tasks); return Math.round((t.filter(x => x.status === "OK").length / t.length) * 100) || 0; }
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-
-    // --- Admin 功能：只有 isAdmin 為 true 才有權操作 Firebase ---
-    function addItem(type) {
-        if(!isAdmin) return;
-        const name = document.getElementById('new-name').value.trim();
-        if(!name) return;
-        let ref = db.ref('v15_data');
-        path.forEach(p => ref = ref.child(p));
-        ref.child(name).update({ _meta: { type: type, color: type==='report'?"#39ff14":"#00f2ff", targetHtml: (type==='report'?"terminal.html":""), displayLabel: (type==='report'?"REPORT":"FOLDER") } });
-        document.getElementById('new-name').value = '';
-    }
-
+    
+    // --- Admin 操作 Function (略，請沿用之前版本的 showEdit, saveEdit, addItem, delItem) ---
+    function addItem(type) { if(!isAdmin) return; const name = document.getElementById('new-name').value.trim(); if(!name) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(name).update({ _meta: { type: type, color: type==='report'?"#39ff14":"#00f2ff", targetHtml: (type==='report'?"terminal.html":""), displayLabel: (type==='report'?"REPORT":"FOLDER") } }); }
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-
-    function showEdit(e, key) {
-        if(!isAdmin) return;
-        e.stopPropagation();
-        const parent = e.target.closest('.card');
-        let curr = allData; path.forEach(p => curr = curr[p]);
-        const meta = curr[key]._meta || {};
-        const overlay = document.createElement('div');
-        overlay.className = 'edit-overlay';
-        overlay.innerHTML = `
-            <label>NAME</label><input type="text" id="ed-n" value="${key}">
-            <label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}">
-            <label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select>
-            <label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
-            <label>COLOR</label><input type="color" id="ed-c" value="${meta.color}">
-            <div class="overlay-btns">
-                <button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button>
-                <button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button>
-            </div>
-        `;
-        parent.appendChild(overlay);
-    }
-
-    function saveEdit(e, oldKey) {
-        e.stopPropagation();
-        const newN = document.getElementById('ed-n').value.trim();
-        const newL = document.getElementById('ed-l').value.trim();
-        const newT = document.getElementById('ed-t').value;
-        const newH = document.getElementById('ed-h').value.trim();
-        const newC = document.getElementById('ed-c').value;
-        if(!newN || !isAdmin) return;
-        let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p));
-        ref.child(oldKey).once('value', s => {
-            let val = s.val() || {}; if(!val._meta) val._meta = {};
-            val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC;
-            val._meta.targetHtml = (newT === 'report') ? newH : "";
-            ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove();
-        });
-    }
+    function showEdit(e, key) { if(!isAdmin) return; e.stopPropagation(); const parent = e.target.closest('.card'); let curr = allData; path.forEach(p => curr = curr[p]); const meta = curr[key]._meta || {}; const overlay = document.createElement('div'); overlay.className = 'edit-overlay'; overlay.innerHTML = `<label>NAME</label><input type="text" id="ed-n" value="${key}"><label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}"><label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select><label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}"><label>COLOR</label><input type="color" id="ed-c" value="${meta.color}"><div class="overlay-btns"><button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button><button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button></div>`; parent.appendChild(overlay); }
+    function saveEdit(e, oldKey) { e.stopPropagation(); const newN = document.getElementById('ed-n').value.trim(); const newL = document.getElementById('ed-l').value.trim(); const newT = document.getElementById('ed-t').value; const newH = document.getElementById('ed-h').value.trim(); const newC = document.getElementById('ed-c').value; if(!newN || !isAdmin) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(oldKey).once('value', s => { let val = s.val() || {}; if(!val._meta) val._meta = {}; val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : ""; ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove(); }); }
 </script>
 </body>
 </html>
