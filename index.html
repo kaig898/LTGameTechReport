@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LTGame Ops v13</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
+        
+        :root { 
+            --bg: #02040a; --text: #e2e8f0; --admin-gold: #f59e0b; --danger: #ff003c;
+        }
+
+        body { 
+            font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; cursor: pointer; text-transform: uppercase; margin: 0; }
+
+        /* 管理工具欄 */
+        #admin-bar { 
+            display: none; background: rgba(245, 158, 11, 0.05); border: 1px solid var(--admin-gold);
+            padding: 15px; border-radius: 4px; margin-bottom: 25px; text-align: center;
+        }
+        #admin-bar input { background: #000; border: 1px solid #334155; color: #fff; padding: 10px; margin-right: 10px; border-radius: 4px; font-family: 'Rajdhani'; }
+        #admin-bar button { background: var(--admin-gold); border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+
+        /* 導導航列 */
+        .nav-bar { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 30px; font-family: 'Orbitron'; font-size: 0.8rem; }
+        .back-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 5px 12px; border-radius: 4px; cursor: pointer; transition: 0.3s; }
+        .back-btn:hover { background: var(--admin-gold); color: #000; border-color: var(--admin-gold); }
+        .path-text { color: #fff; letter-spacing: 1px; }
+        .editable-path { cursor: pointer; border-bottom: 1px dashed transparent; }
+        .admin-active .editable-path { border-bottom-color: var(--admin-gold); }
+
+        /* 網格系統 */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
+        @media (max-width: 950px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+        /* 項目卡片 (Project) */
+        .card-p {
+            background: rgba(15, 23, 42, 0.8); border: 2px solid var(--c); aspect-ratio: 1/1; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; box-shadow: inset 0 0 15px var(--c);
+        }
+
+        /* 場地卡片 (Venue) - 參考 image_11e2b4.png */
+        .card-v {
+            background: rgba(0, 0, 0, 0.4); border: 2px dashed var(--c); aspect-ratio: 1/1; 
+            display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+            cursor: pointer; position: relative; padding: 20px;
+        }
+        .card-v::before { content: "LIVE_DATA"; position: absolute; top: 15px; left: 15px; font-size: 0.7rem; color: var(--c); opacity: 0.7; }
+
+        /* 刪除鈕 */
+        .x-btn { 
+            position: absolute; top: -12px; right: -12px; width: 30px; height: 30px; 
+            background: var(--danger); color: white; border-radius: 50%; 
+            display: none; align-items: center; justify-content: center; 
+            font-size: 18px; border: 2px solid #fff; box-shadow: 0 0 15px var(--danger); z-index: 100;
+        }
+        .admin-active .x-btn { display: flex; }
+
+        /* 編輯小窗 - 參考 image_118176.png */
+        .edit-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.98);
+            display: flex; flex-direction: column; padding: 15px; gap: 10px; z-index: 200;
+        }
+        .edit-overlay input { background: #000; border: 1px solid var(--admin-gold); color: #fff; padding: 8px; font-size: 0.8rem; }
+        .btn-action { padding: 8px; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; }
+        .btn-save { background: var(--admin-gold); color: #000; }
+        .btn-cancel { background: #444; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 id="title" onclick="handleSecret()">LTGAME MASTER OPS</h1>
+        <div id="admin-bar">
+            <input type="text" id="ip" placeholder="PROJECT">
+            <input type="text" id="iv" placeholder="VENUE">
+            <button onclick="addNew()">Confirm Add</button>
+            <button onclick="setAdmin(false)" style="background:#334155; color:#fff; margin-left:10px;">Exit</button>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="back-btn" onclick="goBack()">BACK ➔</div>
+        <div class="path-text">
+            [ <span id="root-label" class="editable-path" onclick="editRootLabel()">MAIN</span> ] 
+            <span id="path-suffix"></span>
+        </div>
+    </div>
+
+    <div id="view" class="grid"></div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA",
+        authDomain: "g2e-macau.firebaseapp.com",
+        databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/",
+        projectId: "g2e-macau",
+        storageBucket: "g2e-macau.firebasestorage.app",
+        messagingSenderId: "875548623135",
+        appId: "1:875548623135:web:b211f0b38c09c198e7f02a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref('v13_data');
+
+    let rawData = {};
+    let curP = null;
+    let isAdmin = false;
+
+    db.on('value', s => { rawData = s.val() || {}; render(); });
+    
+    firebase.database().ref('v13_config').on('value', s => {
+        const conf = s.val() || {};
+        if(conf.title) document.getElementById('title').innerText = conf.title;
+        if(conf.rootLabel) document.getElementById('root-label').innerText = conf.rootLabel;
+    });
+
+    function render() {
+        const v = document.getElementById('view'); v.innerHTML = '';
+        document.body.classList.toggle('admin-active', isAdmin);
+        document.getElementById('admin-bar').style.display = isAdmin ? 'block' : 'none';
+
+        if (!curP) {
+            document.getElementById('path-suffix').innerText = "";
+            Object.keys(rawData).forEach(p => {
+                const color = findColor(rawData[p]) || "#00f2ff";
+                const div = createBox(p, color, true);
+                div.onclick = (e) => {
+                    if (e.target.closest('.edit-overlay') || e.target.classList.contains('x-btn')) return;
+                    const keys = Object.keys(rawData[p]);
+                    if (keys.length === 1 && keys[0] === 'DIRECT') {
+                        const target = rawData[p]['DIRECT'].targetHtml || "terminal.html";
+                        window.location.href=`${target}?p=${p}&v=DIRECT&admin=${isAdmin}`;
+                    } else {
+                        curP = p; render();
+                    }
+                };
+                v.appendChild(div);
+            });
+        } else {
+            document.getElementById('path-suffix').innerText = ` > ${curP}`;
+            Object.keys(rawData[curP]).forEach(venue => {
+                if(venue === 'color') return;
+                const color = rawData[curP][venue].color || "#39ff14";
+                const target = rawData[curP][venue].targetHtml || "terminal.html";
+                const div = createBox(venue, color, false);
+                div.onclick = (e) => {
+                    if (e.target.closest('.edit-overlay') || e.target.classList.contains('x-btn')) return;
+                    window.location.href=`${target}?p=${curP}&v=${venue}&admin=${isAdmin}`;
+                };
+                v.appendChild(div);
+            });
+        }
+    }
+
+    function createBox(name, color, isP) {
+        const div = document.createElement('div');
+        div.className = isP ? 'card-p' : 'card-v';
+        div.style.setProperty('--c', color);
+        div.innerHTML = `
+            <div class="x-btn" onclick="del(event,'${name}')">✕</div>
+            <div style="font-family:Orbitron; font-weight:700; text-align:center; padding:10px; width:100%;" 
+                 onclick="showEdit(event, this, '${name}')">${name}</div>
+        `;
+        return div;
+    }
+
+    function showEdit(e, el, oldName) {
+        if (!isAdmin) return;
+        e.stopPropagation();
+        const parent = el.parentElement;
+        if (parent.querySelector('.edit-overlay')) return;
+        
+        const curColor = parent.style.getPropertyValue('--c').trim();
+        const curHtml = (curP && rawData[curP][oldName]) ? (rawData[curP][oldName].targetHtml || 'terminal.html') : 'terminal.html';
+
+        const overlay = document.createElement('div');
+        overlay.className = 'edit-overlay';
+        overlay.innerHTML = `
+            <input type="text" value="${oldName}" id="edit-n" placeholder="Name">
+            <input type="text" value="${curHtml}" id="edit-h" placeholder="Target HTML (e.g. php.html)">
+            <div style="display:flex; align-items:center; gap:10px; color:#fff; font-size:12px;">
+                COLOR: <input type="color" id="edit-c" value="${curColor}">
+            </div>
+            <button class="btn-action btn-save" onclick="saveEdit(event, '${oldName}')">Save</button>
+            <button class="btn-action btn-cancel" onclick="this.parentElement.remove()">Cancel</button>
+        `;
+        parent.appendChild(overlay);
+    }
+
+    function saveEdit(e, old) {
+        e.stopPropagation();
+        const newN = document.getElementById('edit-n').value.trim();
+        const newH = document.getElementById('edit-h').value.trim();
+        const newC = document.getElementById('edit-c').value;
+        if (curP) {
+            db.child(curP).child(old).once('value', s => {
+                let d = s.val() || { _init: true }; 
+                d.color = newC; d.targetHtml = newH;
+                db.child(curP).child(newN).set(d);
+                if (newN !== old) db.child(curP).child(old).remove();
+            });
+        } else {
+            db.child(old).once('value', s => {
+                let d = s.val();
+                Object.keys(d).forEach(k => { if(typeof d[k] === 'object') { d[k].color = newC; d[k].targetHtml = newH; } });
+                db.child(newN).set(d);
+                if (newN !== old) db.child(old).remove();
+            });
+        }
+    }
+
+    function del(e, name) {
+        e.stopPropagation();
+        if (confirm(`Delete ${name}?`)) {
+            if (curP) db.child(curP).child(name).remove();
+            else db.child(name).remove();
+        }
+    }
+
+    function handleSecret() {
+        if (!isAdmin) {
+            window.clickCnt = (window.clickCnt || 0) + 1;
+            if (window.clickCnt === 5) {
+                if(prompt("ADMIN ACCESS:") === "1234") setAdmin(true);
+                window.clickCnt = 0;
+            }
+            setTimeout(() => window.clickCnt = 0, 2000);
+        } else {
+            const nt = prompt("EDIT TITLE:", document.getElementById('title').innerText);
+            if (nt) firebase.database().ref('v13_config/title').set(nt);
+        }
+    }
+
+    function editRootLabel() {
+        if (!isAdmin) return;
+        const n = prompt("Edit Main Label:", document.getElementById('root-label').innerText);
+        if (n) firebase.database().ref('v13_config/rootLabel').set(n);
+    }
+
+    function addNew() {
+        const p = document.getElementById('ip').value.trim();
+        const v = document.getElementById('iv').value.trim() || "DIRECT";
+        if (p) db.child(p).child(v).update({ _init: true, color: "#00f2ff", targetHtml: "terminal.html" });
+    }
+
+    function findColor(obj) {
+        if (obj.color) return obj.color;
+        for (let k in obj) { if (typeof obj[k] === 'object' && obj[k].color) return obj[k].color; }
+        return null;
+    }
+
+    function setAdmin(s) { isAdmin = s; render(); }
+    function goBack() { if (curP) { curP = null; render(); } }
+</script>
+</body>
+</html>

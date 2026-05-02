@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>G2E Macau 2026 Live Terminal</title>
+    <!-- 引入 Firebase SDK (使用 v8 相容版以確保穩定) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bg: #05080a; --card-bg: #0f172a; --accent: #00f2ff; --success: #00ff87; --danger: #ff3860; --text: #f8fafc; --border: rgba(0, 242, 255, 0.15); }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; -webkit-tap-highlight-color: transparent; }
+        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 30px; }
+        .header-card { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); padding: 20px; border-radius: 20px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 100; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .bar-container { background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        #progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #00d2ff, #00ff87); transition: width 0.6s ease; }
+        #list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .machine-card { background: var(--card-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255,255,255,0.03); }
+        .id-badge { background: linear-gradient(135deg, var(--accent), #0066ff); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-right: 5px; }
+        .btn-group { display: flex; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 8px; margin: 8px 0; }
+        .btn { flex: 1; border: none; background: transparent; color: #475569; padding: 6px 0; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 700; }
+        .btn.active[data-val="OK"] { background: var(--success); color: #00331a; }
+        .btn.active[data-val="ERR"] { background: var(--danger); color: #fff; }
+        .btn.active[data-val="PND"] { background: #334155; color: #f1f5f9; }
+        .remark-box { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; padding: 8px; border-radius: 8px; font-size: 0.75rem; box-sizing: border-box; }
+        h2 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div><h2>G2E CLOUD SYNC</h2></div>
+            <span id="percent-text" style="font-size:1.4rem; font-weight:900; color:var(--success);">0%</span>
+        </div>
+        <div class="bar-container"><div id="progress-bar"></div></div>
+    </div>
+    <div id="list"></div>
+</div>
+
+<script>
+    // 使用你截圖中的 Config[cite: 1]
+    const firebaseConfig = {
+        apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA",
+        authDomain: "g2e-macau.firebaseapp.com",
+        projectId: "g2e-macau",
+        storageBucket: "g2e-macau.firebasestorage.app",
+        messagingSenderId: "875548623135",
+        appId: "1:875548623135:web:b211f0b38c09c198e7f02a",
+        measurementId: "G-FBDFMQTN5F"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref('g2e_sync');
+
+    const machines = [
+        { id: 1, name: "LED Wall", sub: "3D Video" }, { id: 2, name: "Crypto Kiosk", sub: "KryoX" },
+        { id: 3, name: "High Tide", sub: "Meta" }, { id: 4, name: "High Tide", sub: "JP" },
+        { id: 5, name: "High Tide", sub: "PT805" }, { id: 6, name: "High Tide", sub: "Back" },
+        { id: 7, name: "LTS-2", sub: "Handle" }, { id: 8, name: "LTS-2", sub: "Jungle" },
+        { id: 9, name: "LTS-2", sub: "Grand Prix" }, { id: 10, name: "LTS-2", sub: "Phoenix" },
+        { id: 11, name: "LTS-2", sub: "Dragon" }, { id: 12, name: "LTS-2", sub: "Fortune" },
+        { id: 13, name: "LTS-2", sub: "Cyber" }, { id: 14, name: "LTS-2", sub: "Nezha" },
+        { id: 15, name: "LTS-2", sub: "Mythic" }, { id: 16, name: "LTS-2", sub: "Power" },
+        { id: 17, name: "LTS-2", sub: "Golden" }, { id: 18, name: "LTS-2", sub: "Diamond" },
+        { id: 19, name: "LTS-2", sub: "Royal" }, { id: 20, name: "LTS-2", sub: "Infinity" },
+        { id: 21, name: "Speedwave", sub: "Turbo" }, { id: 22, name: "Speedwave", sub: "Neon" },
+        { id: 23, name: "Speedwave", sub: "Ocean" }, { id: 24, name: "Speedwave", sub: "Solar" },
+        { id: 25, name: "Speedwave", sub: "MoriDice" }, { id: 26, name: "Speedwave", sub: "SeeSaw" },
+        { id: 27, name: "Speedwave", sub: "Ice Blast" }, { id: 28, name: "Speedwave", sub: "Thunder" },
+        { id: 29, name: "Speedwave", sub: "Black Coral" }, { id: 30, name: "Speedwave", sub: "Silver" },
+        { id: 31, name: "Robot", sub: "Arm A" }, { id: 32, name: "Robot", sub: "Arm B" },
+        { id: 33, name: "Robot", sub: "Vision" }, { id: 34, name: "Robot", sub: "Logic" },
+        { id: 35, name: "Robot", sub: "LMG Link" }, { id: 36, name: "System", sub: "Jackpot" },
+        { id: 37, name: "System", sub: "Tracking" }, { id: 38, name: "System", sub: "Reader" },
+        { id: 39, name: "System", sub: "Printer" }, { id: 40, name: "System", sub: "Network" },
+        { id: 41, name: "System", sub: "Monitor" }
+    ];
+
+    function init() {
+        const listDiv = document.getElementById('list');
+        machines.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'machine-card';
+            card.innerHTML = `
+                <div><span class="id-badge">U${m.id}</span><span style="font-size:0.85rem;font-weight:700;">${m.name}</span></div>
+                <div class="btn-group" id="hw-${m.id}" data-unit="${m.id}" data-type="hw">
+                    <button class="btn" data-val="OK" onclick="tap(this)">OK</button>
+                    <button class="btn" data-val="ERR" onclick="tap(this)">ERR</button>
+                    <button class="btn active" data-val="PND" onclick="tap(this)">PND</button>
+                </div>
+                <div class="btn-group" id="sw-${m.id}" data-unit="${m.id}" data-type="sw">
+                    <button class="btn" data-val="OK" onclick="tap(this)">OK</button>
+                    <button class="btn" data-val="ERR" onclick="tap(this)">ERR</button>
+                    <button class="btn active" data-val="PND" onclick="tap(this)">PND</button>
+                </div>
+                <input type="text" class="remark-box" id="note-${m.id}" placeholder="備註..." onchange="saveNote(${m.id}, this.value)">
+            `;
+            listDiv.appendChild(card);
+        });
+
+        // 監聽雲端數據庫[cite: 1]
+        db.on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            machines.forEach(m => {
+                const s = data[m.id] || { hw: 'PND', sw: 'PND', note: '' };
+                updateUI(m.id, 'hw', s.hw);
+                updateUI(m.id, 'sw', s.sw);
+                document.getElementById(`note-${m.id}`).value = s.note || '';
+            });
+            calculateProgress();
+        });
+    }
+
+    function updateUI(id, type, val) {
+        const group = document.getElementById(`${type}-${id}`);
+        Array.from(group.children).forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-val') === val);
+        });
+    }
+
+    function tap(el) {
+        const group = el.parentElement;
+        const unitId = group.getAttribute('data-unit');
+        const type = group.getAttribute('data-type');
+        const val = el.getAttribute('data-val');
+        db.child(unitId).child(type).set(val);
+    }
+
+    function saveNote(id, val) {
+        db.child(id).child('note').set(val);
+    }
+
+    function calculateProgress() {
+        const total = machines.length * 2;
+        let okCount = 0;
+        db.once('value', (snap) => {
+            const data = snap.val() || {};
+            Object.values(data).forEach(s => {
+                if(s.hw === 'OK') okCount++;
+                if(s.sw === 'OK') okCount++;
+            });
+            const per = Math.round(okCount / total * 100);
+            document.getElementById('progress-bar').style.width = per + '%';
+            document.getElementById('percent-text').innerText = per + '%';
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>
