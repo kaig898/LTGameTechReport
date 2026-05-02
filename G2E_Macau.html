@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>G2E Macau 2026 Live Terminal</title>
-    <!-- 引入 Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -15,6 +14,7 @@
             --card-bg: #0f172a; 
             --accent: #00f2ff; 
             --success: #39ff14; 
+            --warning: #f59e0b; 
             --danger: #ff003c; 
             --text: #e2e8f0; 
             --border: rgba(0, 242, 255, 0.15); 
@@ -22,258 +22,202 @@
 
         body { 
             font-family: 'Rajdhani', sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 10px; 
+            background: var(--bg); color: var(--text); 
+            margin: 0; padding: 10px; 
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                               linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 4px, 3px 100%;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 30px; }
+        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
 
         .header-card { 
-            background: rgba(15, 23, 42, 0.95); 
-            backdrop-filter: blur(12px); 
-            padding: 15px 20px; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
-            position: sticky; 
-            top: 10px; 
-            z-index: 100; 
-            border: 1px solid var(--border); 
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); 
+            padding: 15px 20px; border-radius: 15px; margin-bottom: 20px; 
+            position: sticky; top: 10px; z-index: 100; border: 1px solid var(--border); 
             box-shadow: 0 0 20px rgba(0,242,255,0.2); 
         }
 
-        .back-btn { 
-            background: var(--accent); 
-            color: #000; 
-            border: none; 
-            padding: 5px 12px; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-right: 15px; 
-            font-size: 0.8rem; 
-            font-family: 'Orbitron';
+        /* 可修改標題樣式 */
+        h2 { margin: 0; font-size: 1.1rem; color: #fff; font-family: 'Orbitron'; text-transform: uppercase; transition: 0.3s; }
+        .admin-active h2 { cursor: pointer; }
+        .admin-active h2:hover { color: var(--warning); text-shadow: 0 0 10px var(--warning); }
+
+        #admin-tools { 
+            display: none; margin-top: 15px; padding-top: 15px; 
+            border-top: 1px solid rgba(255,255,255,0.1); text-align: center;
+        }
+        .admin-active #admin-tools { display: block; }
+
+        .admin-input { 
+            background: #000; border: 1px solid var(--warning); color: #fff; 
+            padding: 8px; border-radius: 4px; width: 50%; margin-right: 5px; 
         }
 
-        .bar-container { 
-            background: rgba(255,255,255,0.05); 
-            height: 8px; 
-            border-radius: 4px; 
-            overflow: hidden; 
-            margin-top: 10px; 
-            border: 1px solid rgba(0,242,255,0.1); 
-        }
+        .add-btn { background: var(--warning); color: #000; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .exit-btn { background: var(--danger); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 5px; }
+        .back-btn { background: #444; color: #fff; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 15px; font-family: 'Orbitron'; }
 
-        #progress-bar { 
-            height: 100%; 
-            width: 0%; 
-            background: linear-gradient(90deg, #00d2ff, #39ff14); 
-            transition: width 0.6s ease; 
-            box-shadow: 0 0 10px var(--success); 
-        }
+        .bar-container { background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        #progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #00d2ff, #39ff14); transition: width 0.6s ease; }
 
-        #list { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 12px; 
-        }
+        #list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-        .machine-card { 
-            background: var(--card-bg); 
-            border-radius: 12px; 
-            padding: 10px; 
-            border: 1px solid var(--border); 
-            position: relative; 
-            transition: 0.3s;
-        }
+        .machine-card { background: var(--card-bg); border-radius: 12px; padding: 12px; border: 1px solid var(--border); position: relative; }
 
-        .id-badge { 
-            background: var(--accent); 
-            color: #000; 
-            padding: 1px 5px; 
-            border-radius: 3px; 
-            font-size: 9px; 
-            font-weight: 900; 
-            margin-bottom: 5px; 
-            display: inline-block; 
-            font-family: 'Orbitron';
+        .del-btn { 
+            display: none; position: absolute; top: 5px; right: 5px; background: var(--danger); color: #fff; 
+            border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; z-index: 10;
         }
+        .admin-active .del-btn { display: block; }
 
-        .btn-group { 
-            display: flex; 
-            background: rgba(0,0,0,0.5); 
-            padding: 2px; 
-            border-radius: 6px; 
-            margin: 6px 0; 
-            border: 1px solid rgba(255,255,255,0.1); 
-        }
+        .id-badge { background: var(--accent); color: #000; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 900; margin-bottom: 8px; display: inline-block; font-family: 'Orbitron'; }
+        .label-text { font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-top: 5px; display: block; }
 
-        .btn { 
-            flex: 1; 
-            border: none; 
-            background: transparent; 
-            color: #64748b; 
-            padding: 5px 0; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 0.65rem; 
-            font-weight: 800; 
-            transition: 0.2s; 
-        }
+        .btn-group { display: flex; background: rgba(0,0,0,0.5); padding: 2px; border-radius: 6px; margin: 4px 0 10px 0; }
+        .btn { flex: 1; border: none; background: transparent; color: #64748b; padding: 6px 0; border-radius: 4px; cursor: pointer; font-size: 0.65rem; font-weight: 800; font-family: 'Orbitron'; }
 
-        .btn.active[data-val="OK"] { background: var(--success); color: #000; box-shadow: 0 0 10px var(--success); }
+        .btn.active[data-val="OK"] { background: var(--success); color: #000; }
+        .btn.active[data-val="TEST"] { background: var(--warning); color: #000; }
         .btn.active[data-val="PND"] { background: #475569; color: #fff; }
 
-        .remark-box { 
-            width: 100%; 
-            background: rgba(0,0,0,0.4); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            color: #fff; 
-            padding: 6px; 
-            border-radius: 5px; 
-            font-size: 0.7rem; 
-            box-sizing: border-box; 
-            font-family: 'Rajdhani';
-        }
+        .remark-box { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 6px; border-radius: 5px; font-size: 0.75rem; box-sizing: border-box; }
 
-        h2 { 
-            margin: 0; 
-            font-size: 1.1rem; 
-            color: #fff; 
-            letter-spacing: 1px; 
-            font-family: 'Orbitron'; 
-            text-transform: uppercase;
-        }
+        #ghost-trigger { position: fixed; bottom: 2px; right: 2px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.02); cursor: pointer; z-index: 2147483647; }
     </style>
 </head>
-<body>
-<div class="container">
+<body id="body-tag">
+<div class="container" id="main-container">
     <div class="header-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center;">
-                <button class="back-btn" onclick="history.back()">BACK</button>
-                <h2 id="venue-title">LOADING...</h2>
+                <button class="back-btn" onclick="window.location.href='index.html'">BACK</button>
+                <!-- 點擊標題可以修改 -->
+                <h2 id="macau-title" onclick="editMacauTitle()">G2E MACAU LIVE</h2>
             </div>
             <span id="percent-text" style="font-size:1.4rem; font-weight:900; color:var(--success); font-family: 'Orbitron';">0%</span>
         </div>
         <div class="bar-container"><div id="progress-bar"></div></div>
+        
+        <div id="admin-tools">
+            <input type="text" id="new-item-name" class="admin-input" placeholder="e.g. U42 LTS-3">
+            <button class="add-btn" onclick="addItem()">+ ADD</button>
+            <button class="exit-btn" onclick="logoutAdmin()">EXIT</button>
+        </div>
     </div>
     <div id="list"></div>
 </div>
 
-<script>
-    // 1. 獲取 URL 參數
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawP = urlParams.get('p') || ""; // 父路徑
-    const venue = urlParams.get('v') || "G2E_REPORT"; // 當前場地名
-    document.getElementById('venue-title').innerText = venue.replace(/_/g, ' ');
+<div id="ghost-trigger" onclick="handleGhostClick()"></div>
 
-    // 2. Firebase 配置[cite: 1]
+<script>
+    let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
     const firebaseConfig = {
         apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA",
         databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/"
     };
     firebase.initializeApp(firebaseConfig);
-    
-    // 3. 動態定位 Firebase 路徑
+    const dbMain = firebase.database();
+
+    // 1. 同步標題配置
+    dbMain.ref('v15_config/macau_title').on('value', s => {
+        if(s.val()) document.getElementById('macau-title').innerText = s.val();
+    });
+
+    function editMacauTitle() {
+        if(!isAdmin) return;
+        const current = document.getElementById('macau-title').innerText;
+        const newVal = prompt("ENTER NEW MACAU TITLE:", current);
+        if(newVal && newVal.trim() !== "") {
+            dbMain.ref('v15_config').update({ macau_title: newVal.trim() });
+        }
+    }
+
+    // 2. 初始化路徑數據
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawP = urlParams.get('p') || ""; 
+    const venue = urlParams.get('v') || "G2E_REPORT"; 
     const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
-    const db = firebase.database().ref('v15_data/' + pathRef + '/tasks');
+    const dbTasks = dbMain.ref('v15_data/' + pathRef + '/tasks');
 
-    // 4. 定義 41 個單位[cite: 1]
-    const machines = [
-        { id: 1, name: "LED Wall", sub: "3D Video" }, { id: 2, name: "Crypto Kiosk", sub: "KryoX" },
-        { id: 3, name: "High Tide", sub: "Meta" }, { id: 4, name: "High Tide", sub: "JP" },
-        { id: 5, name: "High Tide", sub: "PT805" }, { id: 6, name: "High Tide", sub: "Back" },
-        { id: 7, name: "LTS-2", sub: "Handle" }, { id: 8, name: "LTS-2", sub: "Jungle" },
-        { id: 9, name: "LTS-2", sub: "Grand Prix" }, { id: 10, name: "LTS-2", sub: "Phoenix" },
-        { id: 11, name: "LTS-2", sub: "Dragon" }, { id: 12, name: "LTS-2", sub: "Fortune" },
-        { id: 13, name: "LTS-2", sub: "Cyber" }, { id: 14, name: "LTS-2", sub: "Nezha" },
-        { id: 15, name: "LTS-2", sub: "Mythic" }, { id: 16, name: "LTS-2", sub: "Power" },
-        { id: 17, name: "LTS-2", sub: "Golden" }, { id: 18, name: "LTS-2", sub: "Diamond" },
-        { id: 19, name: "LTS-2", sub: "Royal" }, { id: 20, name: "LTS-2", sub: "Infinity" },
-        { id: 21, name: "Speedwave", sub: "Turbo" }, { id: 22, name: "Speedwave", sub: "Neon" },
-        { id: 23, name: "Speedwave", sub: "Ocean" }, { id: 24, name: "Speedwave", sub: "Solar" },
-        { id: 25, name: "Speedwave", sub: "MoriDice" }, { id: 26, name: "Speedwave", sub: "SeeSaw" },
-        { id: 27, name: "Speedwave", sub: "Ice Blast" }, { id: 28, name: "Speedwave", sub: "Thunder" },
-        { id: 29, name: "Speedwave", sub: "Black Coral" }, { id: 30, name: "Speedwave", sub: "Silver" },
-        { id: 31, name: "Robot", sub: "Arm A" }, { id: 32, name: "Robot", sub: "Arm B" },
-        { id: 33, name: "Robot", sub: "Vision" }, { id: 34, name: "Robot", sub: "Logic" },
-        { id: 35, name: "Robot", sub: "LMG Link" }, { id: 36, name: "System", sub: "Jackpot" },
-        { id: 37, name: "System", sub: "Tracking" }, { id: 38, name: "System", sub: "Reader" },
-        { id: 39, name: "System", sub: "Printer" }, { id: 40, name: "System", sub: "Network" },
-        { id: 41, name: "System", sub: "Monitor" }
-    ];
+    function updateAdminUI() {
+        const container = document.getElementById('main-container');
+        if(isAdmin) container.classList.add('admin-active');
+        else container.classList.remove('admin-active');
+    }
 
-    function init() {
+    function handleGhostClick() {
+        if(!isAdmin) window.location.href = 'admin.html';
+        else logoutAdmin();
+    }
+
+    function logoutAdmin() {
+        if(confirm("Logout Admin Mode?")) {
+            localStorage.removeItem('ltgame_token');
+            location.reload();
+        }
+    }
+
+    function renderList(data) {
         const listDiv = document.getElementById('list');
-        machines.forEach(m => {
+        listDiv.innerHTML = '';
+        let okCount = 0, totalCount = 0;
+
+        Object.keys(data).forEach(id => {
+            const item = data[id];
+            totalCount += 2; 
+            if(item.hw === 'OK') okCount++;
+            if(item.sw === 'OK') okCount++;
+
             const card = document.createElement('div');
             card.className = 'machine-card';
             card.innerHTML = `
-                <div><span class="id-badge">U${m.id}</span><span style="font-size:0.75rem;font-weight:700;">${m.sub}</span></div>
-                <div class="btn-group" id="hw-${m.id}" data-unit="${m.id}" data-type="hw">
-                    <button class="btn" data-val="OK" onclick="tap(this)">HW</button>
-                    <button class="btn active" data-val="PND" onclick="tap(this)">PND</button>
+                <button class="del-btn" onclick="deleteItem('${id}')">✕</button>
+                <div>
+                    <span class="id-badge">${id.includes(' ') ? id.split(' ')[0] : 'ID'}</span>
+                    <span style="font-size:0.85rem;font-weight:700;">${id.replace(/^U\d+\s/, '')}</span>
                 </div>
-                <div class="btn-group" id="sw-${m.id}" data-unit="${m.id}" data-type="sw">
-                    <button class="btn" data-val="OK" onclick="tap(this)">SW</button>
-                    <button class="btn active" data-val="PND" onclick="tap(this)">PND</button>
+                <span class="label-text">HARDWARE</span>
+                <div class="btn-group">
+                    <button class="btn ${item.hw==='OK'?'active':''}" data-val="OK" onclick="tap('${id}', 'hw', 'OK')">OK</button>
+                    <button class="btn ${item.hw==='TEST'?'active':''}" data-val="TEST" onclick="tap('${id}', 'hw', 'TEST')">TEST</button>
+                    <button class="btn ${item.hw==='PND'?'active':''}" data-val="PND" onclick="tap('${id}', 'hw', 'PND')">PND</button>
                 </div>
-                <input type="text" class="remark-box" id="note-${m.id}" placeholder="Note..." onchange="saveNote(${m.id}, this.value)">
+                <span class="label-text">SOFTWARE</span>
+                <div class="btn-group">
+                    <button class="btn ${item.sw==='OK'?'active':''}" data-val="OK" onclick="tap('${id}', 'sw', 'OK')">OK</button>
+                    <button class="btn ${item.sw==='TEST'?'active':''}" data-val="TEST" onclick="tap('${id}', 'sw', 'TEST')">TEST</button>
+                    <button class="btn ${item.sw==='PND'?'active':''}" data-val="PND" onclick="tap('${id}', 'sw', 'PND')">PND</button>
+                </div>
+                <input type="text" class="remark-box" value="${item.note || ''}" placeholder="Note..." onchange="saveNote('${id}', this.value)">
             `;
             listDiv.appendChild(card);
         });
 
-        // 5. 監聽 Firebase 數據變動[cite: 1]
-        db.on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            let okCount = 0;
-            machines.forEach(m => {
-                const s = data[m.id] || { hw: 'PND', sw: 'PND', note: '' };
-                updateUI(m.id, 'hw', s.hw);
-                updateUI(m.id, 'sw', s.sw);
-                if(s.hw === 'OK') okCount++;
-                if(s.sw === 'OK') okCount++;
-                document.getElementById(`note-${m.id}`).value = s.note || '';
-            });
-            
-            // 計算總進度
-            const total = machines.length * 2;
-            const per = Math.round(okCount / total * 100);
-            document.getElementById('progress-bar').style.width = per + '%';
-            document.getElementById('percent-text').innerText = per + '%';
-        });
+        const per = totalCount > 0 ? Math.round(okCount / totalCount * 100) : 0;
+        document.getElementById('progress-bar').style.width = per + '%';
+        document.getElementById('percent-text').innerText = per + '%';
     }
 
-    function updateUI(id, type, val) {
-        const group = document.getElementById(`${type}-${id}`);
-        if(!group) return;
-        Array.from(group.children).forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-val') === val);
-        });
+    dbTasks.on('value', snapshot => renderList(snapshot.val() || {}));
+
+    function addItem() {
+        if(!isAdmin) return;
+        const name = document.getElementById('new-item-name').value.trim();
+        if(!name) return;
+        dbTasks.child(name).set({ hw: 'PND', sw: 'PND', note: '' });
+        document.getElementById('new-item-name').value = '';
     }
 
-    // 狀態切換邏輯
-    function tap(el) {
-        const group = el.parentElement;
-        const unitId = group.getAttribute('data-unit');
-        const type = group.getAttribute('data-type');
-        const currentVal = el.classList.contains('active') ? el.getAttribute('data-val') : '';
-        
-        // 如果點擊的是 OK 且當前是 OK，則變回 PND；反之變 OK[cite: 1]
-        const newVal = (el.getAttribute('data-val') === 'OK' && el.classList.contains('active')) ? 'PND' : el.getAttribute('data-val');
-        db.child(unitId).child(type).set(newVal);
+    function deleteItem(id) {
+        if(!isAdmin) return;
+        if(confirm(`Delete "${id}"?`)) dbTasks.child(id).remove();
     }
 
-    function saveNote(id, val) {
-        db.child(id).child('note').set(val);
-    }
+    function tap(id, type, val) { dbTasks.child(id).child(type).set(val); }
+    function saveNote(id, val) { dbTasks.child(id).child('note').set(val); }
 
-    init();
+    updateAdminUI();
 </script>
 </body>
 </html>
