@@ -13,43 +13,37 @@
         .container { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
         .header-card { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); padding: 15px 20px; border-radius: 15px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; border: 1px solid var(--border); box-shadow: 0 0 20px rgba(0,242,255,0.2); }
         h2 { margin: 0; font-size: 1.1rem; color: #fff; font-family: 'Orbitron'; text-transform: uppercase; }
+        .admin-active h2 { cursor: pointer; color: var(--warning); }
         .bar-container { background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; }
         #progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #00d2ff, #39ff14); transition: width 0.6s ease; }
         #admin-tools { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .admin-active #admin-tools { display: block; }
-        .admin-input { background: #000; border: 1px solid var(--warning); color: #fff; padding: 8px; border-radius: 4px; width: 50%; margin-right: 5px; }
+        .admin-input { background: #000; border: 1px solid var(--warning); color: #fff; padding: 8px; border-radius: 4px; width: 40%; margin-right: 5px; }
         .add-btn { background: var(--warning); color: #000; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .exit-btn { background: var(--danger); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 5px; }
         .back-btn { background: #444; color: #fff; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 15px; font-family: 'Orbitron'; }
-
         #list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; perspective: 1000px; }
         .flip-card { height: 320px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
         .flip-card.is-flipped { transform: rotateY(180deg); }
         .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; border: 1px solid var(--border); box-sizing: border-box; padding: 15px; }
         .card-front { background: var(--card-bg); z-index: 2; }
         .card-back { background: #1e293b; transform: rotateY(180deg); z-index: 1; display: flex; flex-direction: column; justify-content: center; }
-
         .del-btn { display: none; position: absolute; top: 8px; right: 8px; background: var(--danger); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; z-index: 10; }
-        .edit-gear { display: none; position: absolute; bottom: 45px; right: 8px; background: var(--warning); color: #000; border: none; width: 24px; height: 24px; border-radius: 4px; z-index: 10; font-size: 14px; text-align: center; }
+        .edit-gear { display: none; position: absolute; bottom: 45px; right: 8px; background: var(--warning); color: #000; border: none; width: 24px; height: 24px; border-radius: 4px; z-index: 10; font-size: 14px; }
         .admin-active .del-btn, .admin-active .edit-gear { display: block; }
-
         .id-badge { background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 900; margin-bottom: 10px; display: inline-block; font-family: 'Orbitron'; }
-        .label-text { font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-top: 8px; display: block; text-transform: uppercase; }
+        .label-text { font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-top: 8px; display: block; }
         .btn-group { display: flex; background: rgba(0,0,0,0.5); padding: 2px; border-radius: 6px; margin: 5px 0 12px 0; }
         .btn { flex: 1; border: none; background: transparent; color: #64748b; padding: 8px 0; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: 800; font-family: 'Orbitron'; }
         .btn.active[data-val="OK"] { background: var(--success); color: #000; }
         .btn.active[data-val="TEST"] { background: var(--warning); color: #000; }
         .btn.active[data-val="PND"] { background: #475569; color: #fff; }
         .remark-box { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px; border-radius: 5px; font-size: 0.8rem; }
-
         .info-row { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
         .info-label { font-size: 0.65rem; color: var(--accent); font-family: 'Orbitron'; display: block; }
         .info-value { font-size: 0.85rem; color: #fff; font-weight: 600; word-break: break-all; }
-
         .edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
-        .edit-overlay input, .edit-overlay textarea { background: #111; border: 1px solid var(--accent); color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-family: 'Rajdhani'; width: 100%; box-sizing: border-box; }
-        .edit-overlay label { color: var(--warning); font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; display: block; }
-
+        .edit-overlay input, .edit-overlay textarea { background: #111; border: 1px solid var(--accent); color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         #ghost-trigger { position: fixed; bottom: 2px; right: 2px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.02); cursor: pointer; z-index: 2147483647; }
     </style>
 </head>
@@ -59,13 +53,13 @@
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center;">
                 <button class="back-btn" onclick="window.location.href='index.html'">BACK</button>
-                <h2 id="macau-title" onclick="editMacauTitle()">G2E MACAU LIVE</h2>
+                <h2 id="macau-title" onclick="editTitle()">G2E MACHINE</h2>
             </div>
             <span id="percent-text" style="font-size:1.4rem; font-weight:900; color:var(--success); font-family: 'Orbitron';">0%</span>
         </div>
         <div class="bar-container"><div id="progress-bar"></div></div>
         <div id="admin-tools">
-            <input type="text" id="new-item-name" class="admin-input" placeholder="Display Name">
+            <input type="text" id="new-item-name" class="admin-input" placeholder="Unit Name">
             <button class="add-btn" onclick="addItem()">+ ADD UNIT</button>
             <button class="exit-btn" onclick="logoutAdmin()">EXIT</button>
         </div>
@@ -74,16 +68,13 @@
 </div>
 
 <div id="edit-modal" class="edit-overlay">
-    <h2 style="color:var(--warning); margin-bottom:20px;">UNIT CONFIGURATION</h2>
+    <h2 style="color:var(--warning); margin-bottom:20px;">UNIT CONFIG</h2>
     <label>UNIT ID (Badge)</label><input type="text" id="mod-badge">
     <label>MODEL NAME</label><input type="text" id="mod-model">
     <label>SERIAL NO.</label><input type="text" id="mod-sn">
     <label>GAME DESCRIPTION</label><textarea id="mod-desc" rows="3"></textarea>
     <label>MPU MODEL</label><input type="text" id="mod-mpu">
-    <div style="display:flex; gap:10px;">
-        <button onclick="saveAdvancedEdit()" style="flex:1; padding:15px; background:var(--success); color:#000; border:none; border-radius:4px; font-weight:bold;">SAVE</button>
-        <button onclick="closeEditModal()" style="flex:1; padding:15px; background:#444; color:#fff; border:none; border-radius:4px;">CANCEL</button>
-    </div>
+    <div style="display:flex; gap:10px;"><button onclick="saveAdvancedEdit()" style="flex:1; padding:15px; background:var(--success); font-weight:bold;">SAVE</button><button onclick="closeEditModal()" style="flex:1; padding:15px; background:#444; color:#fff;">CANCEL</button></div>
 </div>
 
 <div id="ghost-trigger" onclick="handleGhostClick()"></div>
@@ -92,137 +83,63 @@
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
     const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
-    const dbMain = firebase.database();
+    const db = firebase.database();
 
     const urlParams = new URLSearchParams(window.location.search);
     const rawP = urlParams.get('p') || ""; 
-    const venue = urlParams.get('v') || "G2E_REPORT"; 
+    const venue = urlParams.get('v') || "G2E_Macau"; 
     const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
-    const dbTasks = dbMain.ref('v15_data/' + pathRef + '/tasks');
+    const dbTasks = db.ref('v15_data/' + pathRef + '/tasks');
 
-    // --- 預載 31 列數據 ---
     const presetMachines = [
-        {id:"High Tide - 1", model:"High Tide", desc:"Atomic Get Away", mpu:"P118X+"},
-        {id:"High Tide - 2", model:"High Tide", desc:"Atomic Revolution", mpu:"P118X+"},
-        {id:"High Tide - 3", model:"High Tide", desc:"Atomic Get Away", mpu:"P118X+"},
-        {id:"High Tide - 4", model:"High Tide", desc:"Atomic Revolution", mpu:"P118X+"},
-        {id:"LTS2 - 1", model:"LTS2", desc:"Ling Shou Xian Rui", mpu:"P118X+"},
-        {id:"LTS2 - 2", model:"LTS2", desc:"Nezha", mpu:"P118X+"},
-        {id:"LTS2 - 3", model:"LTS2", desc:"Bull Demon King", mpu:"P118X+"},
-        {id:"LTS2 - 4", model:"LTS2", desc:"Burstin' Chilli", mpu:"P118X+"},
-        {id:"LTS2 - 5", model:"LTS2", desc:"Wooly Lazy", mpu:"P118X+"},
-        {id:"LTS2 - 6", model:"LTS2", desc:"Jungle and Golden Goal Bonanza - Nabula", mpu:"P118X+"},
-        {id:"LTS2 - 7", model:"LTS2", desc:"Street Steel (with Handle)", mpu:"P118X+"},
-        {id:"LTS2 - 8", model:"LTS2", desc:"Golden Goal Bonanza - Standalone Vers.", mpu:"P118X+"},
-        {id:"LTS2 - 9", model:"LTS2", desc:"Chef", mpu:"P118X+"},
-        {id:"LTS2 - 10", model:"LTS2", desc:"Chef Rat", mpu:"P118X+"},
-        {id:"Bartop - 1", model:"Bartop", desc:"HOP - BROG", mpu:""},
-        {id:"Bartop - 2", model:"Bartop", desc:"HOP - COLOR Game", mpu:""},
-        {id:"Bartop - 3", model:"Bartop", desc:"HOP - HiLo", mpu:""},
-        {id:"Speedwave - 1", model:"Speedwave", desc:"Enter the Dragon", mpu:"P118"},
-        {id:"Speedwave - 2", model:"Speedwave", desc:"SeeSaw Craps", mpu:"P118"},
-        {id:"Speedwave - 3", model:"Speedwave", desc:"Mori Dice", mpu:"P118"},
-        {id:"Speedwave - 4", model:"Speedwave", desc:"Black Coral", mpu:"P118"},
-        {id:"Speedwave - 5", model:"Speedwave", desc:"Black Coral", mpu:"P118"},
-        {id:"Speedwave - 6", model:"Speedwave", desc:"Golden Goal Bonanza - Standalone Vers.", mpu:"P118"},
-        {id:"Speedwave - 7", model:"Speedwave", desc:"", mpu:"P118"},
-        {id:"Ripple - 1", model:"Ripple", sn:"LT-2603-80053", desc:"Steam & Fortune", mpu:"P118"},
-        {id:"Ripple - 2", model:"Ripple", sn:"LT-2603-80055", desc:"KP Paradise", mpu:"P118"},
-        {id:"Ripple - 3", model:"Ripple", sn:"LT-2603-80054", desc:"KP Paradise", mpu:"P118"},
-        {id:"Ripple - 4", model:"Ripple", sn:"LT-2603-80056", desc:"Fortune 3Card", mpu:"P118"},
-        {id:"Crypto Kiosk", model:"Crypto Kiosk", desc:"", mpu:""},
-        {id:"Robot", model:"Robot", desc:"", mpu:""}
+        {id:"High Tide - 1", model:"High Tide", desc:"Atomic Get Away", mpu:"P118X+"}, {id:"High Tide - 2", model:"High Tide", desc:"Atomic Revolution", mpu:"P118X+"}, {id:"High Tide - 3", model:"High Tide", desc:"Atomic Get Away", mpu:"P118X+"}, {id:"High Tide - 4", model:"High Tide", desc:"Atomic Revolution", mpu:"P118X+"},
+        {id:"LTS2 - 1", model:"LTS2", desc:"Ling Shou Xian Rui", mpu:"P118X+"}, {id:"LTS2 - 2", model:"LTS2", desc:"Nezha", mpu:"P118X+"}, {id:"LTS2 - 3", model:"LTS2", desc:"Bull Demon King", mpu:"P118X+"}, {id:"LTS2 - 4", model:"LTS2", desc:"Burstin' Chilli", mpu:"P118X+"}, {id:"LTS2 - 5", model:"LTS2", desc:"Wooly Lazy", mpu:"P118X+"}, {id:"LTS2 - 6", model:"LTS2", desc:"Jungle and Golden Goal Bonanza - Nabula", mpu:"P118X+"}, {id:"LTS2 - 7", model:"LTS2", desc:"Street Steel (with Handle)", mpu:"P118X+"}, {id:"LTS2 - 8", model:"LTS2", desc:"Golden Goal Bonanza - Standalone Vers.", mpu:"P118X+"}, {id:"LTS2 - 9", model:"LTS2", desc:"Chef", mpu:"P118X+"}, {id:"LTS2 - 10", model:"LTS2", desc:"Chef Rat", mpu:"P118X+"},
+        {id:"Bartop - 1", model:"Bartop", desc:"HOP - BROG", mpu:""}, {id:"Bartop - 2", model:"Bartop", desc:"HOP - COLOR Game", mpu:""}, {id:"Bartop - 3", model:"Bartop", desc:"HOP - HiLo", mpu:""},
+        {id:"Speedwave - 1", model:"Speedwave", desc:"Enter the Dragon", mpu:"P118"}, {id:"Speedwave - 2", model:"Speedwave", desc:"SeeSaw Craps", mpu:"P118"}, {id:"Speedwave - 3", model:"Speedwave", desc:"Mori Dice", mpu:"P118"}, {id:"Speedwave - 4", model:"Speedwave", desc:"Black Coral", mpu:"P118"}, {id:"Speedwave - 5", model:"Speedwave", desc:"Black Coral", mpu:"P118"}, {id:"Speedwave - 6", model:"Speedwave", desc:"Golden Goal Bonanza - Standalone Vers.", mpu:"P118"}, {id:"Speedwave - 7", model:"Speedwave", desc:"", mpu:"P118"},
+        {id:"Ripple - 1", model:"Ripple", sn:"LT-2603-80053", desc:"Steam & Fortune", mpu:"P118"}, {id:"Ripple - 2", model:"Ripple", sn:"LT-2603-80055", desc:"KP Paradise", mpu:"P118"}, {id:"Ripple - 3", model:"Ripple", sn:"LT-2603-80054", desc:"KP Paradise", mpu:"P118"}, {id:"Ripple - 4", model:"Ripple", sn:"LT-2603-80056", desc:"Fortune 3Card", mpu:"P118"},
+        {id:"Crypto Kiosk", model:"Crypto Kiosk", desc:"", mpu:""}, {id:"Robot", model:"Robot", desc:"", mpu:""}
     ];
 
     let editingKey = null;
 
-    dbMain.ref('v15_config/macau_title').on('value', s => { if(s.val()) document.getElementById('macau-title').innerText = s.val(); });
-
-    function editMacauTitle() { if(!isAdmin) return; const newVal = prompt("ENTER NEW TITLE:", document.getElementById('macau-title').innerText); if(newVal) dbMain.ref('v15_config').update({ macau_title: newVal.trim() }); }
+    db.ref('v15_config/macau_title').on('value', s => { if(s.val()) document.getElementById('macau-title').innerText = s.val(); });
 
     function renderList(data) {
-        // 如果 Firebase 裡面無數據，自動預載 31 列
         if (!data || Object.keys(data).length === 0) {
-            presetMachines.forEach(m => {
-                dbTasks.child(m.id).set({ hw:'PND', sw:'PND', note:'', _meta:{ badge:m.id, model:m.model, sn:m.sn||"", desc:m.desc, mpu:m.mpu } });
-            });
+            presetMachines.forEach(m => { dbTasks.child(m.id).set({ hw:'PND', sw:'PND', note:'', _meta:{ badge:m.id.split(' ')[0], model:m.model, sn:m.sn||"", desc:m.desc, mpu:m.mpu } }); });
             return;
         }
-
         const listDiv = document.getElementById('list'); listDiv.innerHTML = '';
         let okCount = 0, totalCount = 0;
-
         Object.keys(data).forEach(key => {
             const item = data[key], meta = item._meta || {};
             totalCount += 2; if(item.hw === 'OK') okCount++; if(item.sw === 'OK') okCount++;
-            const flipCard = document.createElement('div');
-            flipCard.className = 'flip-card';
+            const flipCard = document.createElement('div'); flipCard.className = 'flip-card';
             flipCard.innerHTML = `
-                <div class="card-front" onclick="flipCard(this)">
-                    <button class="del-btn" onclick="deleteItem(event, '${key}')">✕</button>
-                    <button class="edit-gear" onclick="openEditModal(event, '${key}')">⚙️</button>
-                    <div class="id-badge">${meta.badge || key}</div>
-                    <div style="font-size:0.9rem;font-weight:700;margin-bottom:10px;">${key}</div>
-                    <span class="label-text">HARDWARE</span>
-                    <div class="btn-group">
-                        <button class="btn ${item.hw==='OK'?'active':''}" data-val="OK" onclick="tap(event, '${key}', 'hw', 'OK')">OK</button>
-                        <button class="btn ${item.hw==='TEST'?'active':''}" data-val="TEST" onclick="tap(event, '${key}', 'hw', 'TEST')">TEST</button>
-                        <button class="btn ${item.hw==='PND'?'active':''}" data-val="PND" onclick="tap(event, '${key}', 'hw', 'PND')">PND</button>
-                    </div>
-                    <span class="label-text">SOFTWARE</span>
-                    <div class="btn-group">
-                        <button class="btn ${item.sw==='OK'?'active':''}" data-val="OK" onclick="tap(event, '${key}', 'sw', 'OK')">OK</button>
-                        <button class="btn ${item.sw==='TEST'?'active':''}" data-val="TEST" onclick="tap(event, '${key}', 'sw', 'TEST')">TEST</button>
-                        <button class="btn ${item.sw==='PND'?'active':''}" data-val="PND" onclick="tap(event, '${key}', 'sw', 'PND')">PND</button>
-                    </div>
-                    <input type="text" class="remark-box" value="${item.note || ''}" placeholder="Quick Note..." onclick="event.stopPropagation()" onchange="saveNote('${key}', this.value)">
-                </div>
-                <div class="card-back" onclick="flipCard(this)">
-                    <div class="info-row"><span class="info-label">MODEL NAME</span><span class="info-value">${meta.model || '--'}</span></div>
-                    <div class="info-row"><span class="info-label">SERIAL NO.</span><span class="info-value">${meta.sn || '--'}</span></div>
-                    <div class="info-row"><span class="info-label">GAME DESCRIPTION</span><span class="info-value">${meta.desc || '--'}</span></div>
-                    <div class="info-row"><span class="info-label">MPU MODEL</span><span class="info-value">${meta.mpu || '--'}</span></div>
-                    <div style="text-align:center; margin-top:10px; font-size:0.6rem; color:var(--accent);">CLICK TO FLIP BACK</div>
-                </div>`;
+                <div class="card-front" onclick="flipCard(this)"><button class="del-btn" onclick="deleteItem(event, '${key}')">✕</button><button class="edit-gear" onclick="openEditModal(event, '${key}')">⚙️</button>
+                    <div class="id-badge">${meta.badge || key}</div><div style="font-size:0.9rem;font-weight:700;margin-bottom:10px;">${key}</div>
+                    <span class="label-text">HARDWARE</span><div class="btn-group"><button class="btn ${item.hw==='OK'?'active':''}" data-val="OK" onclick="tap(event, '${key}', 'hw', 'OK')">OK</button><button class="btn ${item.hw==='TEST'?'active':''}" data-val="TEST" onclick="tap(event, '${key}', 'hw', 'TEST')">TEST</button><button class="btn ${item.hw==='PND'?'active':''}" data-val="PND" onclick="tap(event, '${key}', 'hw', 'PND')">PND</button></div>
+                    <span class="label-text">SOFTWARE</span><div class="btn-group"><button class="btn ${item.sw==='OK'?'active':''}" data-val="OK" onclick="tap(event, '${key}', 'sw', 'OK')">OK</button><button class="btn ${item.sw==='TEST'?'active':''}" data-val="TEST" onclick="tap(event, '${key}', 'sw', 'TEST')">TEST</button><button class="btn ${item.sw==='PND'?'active':''}" data-val="PND" onclick="tap(event, '${key}', 'sw', 'PND')">PND</button></div>
+                    <input type="text" class="remark-box" value="${item.note || ''}" placeholder="Note..." onclick="event.stopPropagation()" onchange="saveNote('${key}', this.value)"></div>
+                <div class="card-back" onclick="flipCard(this)"><div class="info-row"><span class="info-label">MODEL</span><span class="info-value">${meta.model || '--'}</span></div><div class="info-row"><span class="info-label">S/N</span><span class="info-value">${meta.sn || '--'}</span></div><div class="info-row"><span class="info-label">GAME</span><span class="info-value">${meta.desc || '--'}</span></div><div class="info-row"><span class="info-label">MPU</span><span class="info-value">${meta.mpu || '--'}</span></div></div>`;
             listDiv.appendChild(flipCard);
         });
-        const per = Math.round(okCount / totalCount * 100);
+        const per = Math.round(okCount / totalCount * 100) || 0;
         document.getElementById('progress-bar').style.width = per + '%';
         document.getElementById('percent-text').innerText = per + '%';
     }
 
     function flipCard(el) { if (event.target.closest('.btn') || event.target.closest('input') || event.target.closest('button')) return; el.parentElement.classList.toggle('is-flipped'); }
-    dbTasks.on('value', snapshot => renderList(snapshot.val()));
-
-    function openEditModal(e, key) {
-        e.stopPropagation(); editingKey = key;
-        dbTasks.child(key).once('value', s => {
-            const m = s.val()._meta || {};
-            document.getElementById('mod-badge').value = m.badge || key;
-            document.getElementById('mod-model').value = m.model || "";
-            document.getElementById('mod-sn').value = m.sn || "";
-            document.getElementById('mod-desc').value = m.desc || "";
-            document.getElementById('mod-mpu').value = m.mpu || "";
-            document.getElementById('edit-modal').style.display = 'flex';
-        });
-    }
+    dbTasks.on('value', s => renderList(s.val()));
+    function openEditModal(e, k) { e.stopPropagation(); editingKey = k; dbTasks.child(k).once('value', s => { const m = s.val()._meta || {}; document.getElementById('mod-badge').value = m.badge || k; document.getElementById('mod-model').value = m.model || ""; document.getElementById('mod-sn').value = m.sn || ""; document.getElementById('mod-desc').value = m.desc || ""; document.getElementById('mod-mpu').value = m.mpu || ""; document.getElementById('edit-modal').style.display = 'flex'; }); }
     function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
-    function saveAdvancedEdit() {
-        if(!editingKey) return;
-        dbTasks.child(editingKey).child('_meta').update({
-            badge: document.getElementById('mod-badge').value,
-            model: document.getElementById('mod-model').value,
-            sn: document.getElementById('mod-sn').value,
-            desc: document.getElementById('mod-desc').value,
-            mpu: document.getElementById('mod-mpu').value
-        });
-        closeEditModal();
-    }
+    function saveAdvancedEdit() { if(!editingKey) return; dbTasks.child(editingKey).child('_meta').update({ badge: document.getElementById('mod-badge').value, model: document.getElementById('mod-model').value, sn: document.getElementById('mod-sn').value, desc: document.getElementById('mod-desc').value, mpu: document.getElementById('mod-mpu').value }); closeEditModal(); }
     function addItem() { if(!isAdmin) return; const n = document.getElementById('new-item-name').value.trim(); if(!n) return; dbTasks.child(n).set({ hw:'PND', sw:'PND', note:'', _meta:{ badge:n } }); document.getElementById('new-item-name').value = ''; }
-    function deleteItem(e, key) { e.stopPropagation(); if(confirm(`Delete Unit?`)) dbTasks.child(key).remove(); }
-    function tap(e, id, type, val) { e.stopPropagation(); dbTasks.child(id).child(type).set(val); }
-    function saveNote(id, val) { dbTasks.child(id).child('note').set(val); }
-    function logoutAdmin() { if(confirm("Logout Admin?")) { localStorage.removeItem('ltgame_token'); location.reload(); } }
+    function deleteItem(e, k) { e.stopPropagation(); if(confirm(`Delete?`)) dbTasks.child(k).remove(); }
+    function tap(e, id, t, v) { e.stopPropagation(); dbTasks.child(id).child(t).set(v); }
+    function saveNote(id, v) { dbTasks.child(id).child('note').set(v); }
+    function logoutAdmin() { if(confirm("Logout?")) { localStorage.removeItem('ltgame_token'); location.reload(); } }
+    function editTitle() { if(!isAdmin) return; const n = prompt("TITLE:", document.getElementById('macau-title').innerText); if(n) db.ref('v15_config').update({ macau_title: n.trim() }); }
     function handleGhostClick() { if(!isAdmin) window.location.href = 'admin.html'; else logoutAdmin(); }
     if(isAdmin) document.getElementById('main-container').classList.add('admin-active');
 </script>
