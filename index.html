@@ -1,359 +1,189 @@
 <!DOCTYPE html>
-
 <html lang="zh-Hant">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <title>LTGame Ops Center</title>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
-
         :root { --bg: #02040a; --text: #e2e8f0; --admin-gold: #f59e0b; --danger: #ff003c; --success: #39ff14; --folder-blue: #00f2ff; }
-
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; overflow-x: hidden; }
-
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
-
         .header { text-align: center; margin-bottom: 10px; }
-
-        
-
         h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; transition: 0.3s; }
-
         .admin-active h1 { cursor: pointer; }
-
         .admin-active h1:hover { color: var(--admin-gold); text-shadow: 0 0 10px var(--admin-gold); }
-
-
-
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
-
         input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
-
-
-
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
-
         .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; text-transform: uppercase; }
-
-        
-
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
-
         .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
-
         .path-sep { color: #555; margin: 0 5px; }
-
-
-
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
-
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-
-
-
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
-
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
-
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
-
         .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; z-index: 2; color: #fff; text-transform: uppercase; }
-
-
-
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
-
         .admin-active .admin-btns { display: flex; }
-
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
-
         .edit-btn { background: var(--admin-gold); color: #000; }
-
         .del-btn { background: var(--danger); color: #fff; }
-
-
-
         .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
-
-
-
         .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; text-align: left; }
-
         .edit-overlay label { font-size: 0.7rem; color: var(--admin-gold); font-weight: bold; margin-left: 5px; }
-
         .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
-
         .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
-
-
-
         #ghost-trigger { position: fixed; bottom: 2px; right: 2px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.02); cursor: pointer; z-index: 2147483647; }
-
     </style>
-
 </head>
-
 <body>
-
 <div class="container">
-
     <div class="header">
-
         <h1 id="header-title" onclick="editGlobalConfig('title')">LTGAME MASTER OPS</h1>
-
         <div id="admin-bar">
-
             <input type="text" id="new-name" placeholder="Item Name">
-
             <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ FOLDER</button>
-
             <button onclick="addItem('report')" style="background:var(--success); color:#000; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; border-radius:4px;">+ REPORT</button>
-
             <button onclick="logoutAdmin()" style="background:#444; color:#fff; border:none; padding:10px; cursor:pointer; margin-left:10px; border-radius:4px;">EXIT ADMIN</button>
-
         </div>
-
         <div class="nav-bar">
-
             <button class="nav-btn-home" id="root-btn-text" onclick="rootClickHandle(event)">PROJECT</button>
-
             <div id="path-display"></div>
-
         </div>
-
     </div>
-
     <div id="view" class="grid"></div>
-
 </div>
-
-
-
 <div id="ghost-trigger" title="Admin Access" onclick="location.href='admin.html'"></div>
 
-
-
 <script>
-
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
-
     const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
-
     firebase.initializeApp(firebaseConfig);
-
     const db = firebase.database();
-
     
-
     let allData = {}, path = [];
-
     let config = { title: "LTGAME MASTER OPS", rootName: "PROJECT" };
 
-
-
     db.ref('v15_config').on('value', s => {
-
         if(s.val()) {
-
             config = s.val();
-
             document.getElementById('header-title').innerText = config.title || "LTGAME MASTER OPS";
-
             document.getElementById('root-btn-text').innerText = config.rootName || "PROJECT";
-
         }
-
         render();
-
     });
-
-
 
     db.ref('v15_data').on('value', s => { allData = s.val() || {}; render(); });
 
-
-
     function editGlobalConfig(type) {
-
         if(!isAdmin) return;
-
         const currentVal = (type === 'title') ? config.title : config.rootName;
-
         const newVal = prompt(`ENTER NEW ${type.toUpperCase()}:`, currentVal);
-
         if(newVal && newVal.trim() !== "") {
-
             db.ref('v15_config').update({ [type]: newVal.trim() });
-
         }
-
     }
-
-
 
     function rootClickHandle(e) {
-
         if(isAdmin && path.length === 0) {
-
             if(confirm("RENAME THIS BUTTON?")) { editGlobalConfig('rootName'); return; }
-
         }
-
         jumpTo(-1);
-
     }
-
-
 
     function render() {
-
         const v = document.getElementById('view'); v.innerHTML = '';
-
         document.body.classList.toggle('admin-active', isAdmin);
-
         document.getElementById('admin-bar').style.display = isAdmin ? 'block' : 'none';
-
         let curr = allData;
-
         path.forEach(p => { if(curr[p]) curr = curr[p]; });
-
         
-
         const pathDiv = document.getElementById('path-display');
-
         const displayRoot = config.rootName || "PROJECT";
-
         pathDiv.innerHTML = `<span class="path-sep">[</span> <span class="path-link" onclick="jumpTo(-1)">${displayRoot}</span> <span class="path-sep">]</span>`;
-
         path.forEach((p, index) => { pathDiv.innerHTML += ` > <span class="path-link" onclick="jumpTo(${index})">${p}</span>`; });
 
-
-
         Object.keys(curr).forEach(key => {
-
             if(key === '_meta') return;
-
             const item = curr[key], meta = item._meta || {}, isReport = meta.type === 'report';
-
             const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
 
-
-
             const div = document.createElement('div');
-
             div.className = `card ${isReport ? 'report' : 'folder'}`;
-
             div.style.setProperty('--c', color);
-
             div.onclick = (e) => {
-
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
-
-                if (isReport) { window.location.href = `${meta.targetHtml || 'terminal.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
-
+                if (isReport) { 
+                    // 這裡改為連結到 G2E_Macau.html 作為 Template
+                    window.location.href = `${meta.targetHtml || 'G2E_Macau.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; 
+                }
                 else { path.push(key); render(); }
-
             };
-
             div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>`;
-
             v.appendChild(div);
-
         });
-
     }
-
-
 
     function jumpTo(i) { path = path.slice(0, i + 1); render(); }
-
     function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-
     
-
-    function addItem(t) { if(!isAdmin) return; const n = document.getElementById('new-name').value.trim(); if(!n) return; let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p)); ref.child(n).update({ _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", targetHtml: "terminal.html", displayLabel: t==='report'?"REPORT":"FOLDER" } }); document.getElementById('new-name').value = ''; }
+    // 修復：addItem 自動預設為 G2E_Macau.html
+    function addItem(t) { 
+        if(!isAdmin) return; 
+        const n = document.getElementById('new-name').value.trim(); 
+        if(!n) return; 
+        let ref = db.ref('v15_data'); 
+        path.forEach(p => ref = ref.child(p)); 
+        ref.child(n).update({ 
+            _meta: { 
+                type: t, 
+                color: t==='report'?"#39ff14":"#00f2ff", 
+                targetHtml: t==='report'?"G2E_Macau.html":"", 
+                displayLabel: t==='report'?"REPORT":"FOLDER" 
+            } 
+        }); 
+        document.getElementById('new-name').value = ''; 
+    }
 
     function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-
     
-
     function showEdit(e, key) {
-
         e.stopPropagation();
-
         const parent = e.target.closest('.card');
-
         let curr = allData; path.forEach(p => curr = curr[p]);
-
         const meta = curr[key]._meta || {};
-
         const overlay = document.createElement('div');
-
         overlay.className = 'edit-overlay';
-
         overlay.innerHTML = `
-
             <label>NAME</label><input type="text" id="ed-n" value="${key}">
-
             <label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}">
-
             <label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select>
-
             <label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
-
             <label>COLOR</label><input type="color" id="ed-c" value="${meta.color||'#00f2ff'}">
-
             <div class="overlay-btns">
-
                 <button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button>
-
                 <button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button>
-
             </div>
-
         `;
-
         parent.appendChild(overlay);
-
     }
-
-
 
     function saveEdit(e, oldKey) {
-
         e.stopPropagation();
-
         const newN = document.getElementById('ed-n').value.trim(), newL = document.getElementById('ed-l').value.trim(), newT = document.getElementById('ed-t').value, newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value;
-
         if(!newN || !isAdmin) return;
-
         let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p));
-
         ref.child(oldKey).once('value', s => {
-
             let val = s.val() || {}; if(!val._meta) val._meta = {};
-
             val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : "";
-
             ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove();
-
         });
-
     }
-
 </script>
-
 </body>
-
 </html>
