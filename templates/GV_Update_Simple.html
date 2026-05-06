@@ -1,1 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golden Version Update</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
+        :root { --bg: #02040a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
+        .header { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(245, 158, 11, 0.3); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        h2 { margin: 0; font-family: 'Orbitron'; color: var(--accent); font-size: 1.2rem; }
+        .back-btn { background: #334155; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; }
+        
+        .card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 25px; text-align: center; }
+        .status-row { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        /* 數字輸入位 */
+        .counter-group { display: flex; align-items: center; gap: 20px; }
+        input[type="number"] { background: #000; border: 2px solid var(--accent); color: var(--success); font-family: 'Orbitron'; font-size: 2.5rem; width: 120px; text-align: center; border-radius: 8px; padding: 10px; }
+        .total-label { font-family: 'Orbitron'; font-size: 1.5rem; color: #555; }
+        
+        /* 進度條 */
+        .p-bar-bg { width: 100%; max-width: 500px; background: rgba(255,255,255,0.05); height: 20px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .p-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.5s; }
+        
+        .percent-text { font-family: 'Orbitron'; font-size: 2rem; color: var(--success); font-weight: bold; }
+        .btn-save { background: var(--success); color: #000; border: none; padding: 12px 40px; border-radius: 4px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-save:hover { box-shadow: 0 0 15px var(--success); }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='../index.html'">BACK</button>
+        <h2 id="casino-name">LOADING...</h2>
+        <div id="date-now" style="font-family:'Orbitron'; font-size:0.8rem; color:#666;">2026-05-06</div>
+    </div>
+
+    <div class="card">
+        <div class="status-row">
+            <div class="percent-text" id="percent">0%</div>
+            <div class="p-bar-bg"><div class="p-bar-fill" id="fill" style="width: 0%"></div></div>
+            
+            <div class="counter-group">
+                <div style="text-align: center;">
+                    <label style="display:block; font-size:0.7rem; color:var(--accent); margin-bottom:5px;">COMPLETED</label>
+                    <input type="number" id="done-count" value="0" oninput="updateUI()">
+                </div>
+                <div class="total-label">/ <span id="total-val">0</span></div>
+            </div>
+            
+            <button class="btn-save" onclick="saveData()">SAVE UPDATE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const venue = urlParams.get('v') || "Unknown";
+    const rawP = urlParams.get('p') || "";
+    const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
+
+    document.getElementById('casino-name').innerText = venue.toUpperCase().replace(/_/g, ' ');
+
+    let totalMachines = 0;
+
+    // 1. 攞返呢個賭場嘅總機數 (喺 index.html 新加嗰陣填嘅)
+    db.ref('v15_data/' + pathRef + '/_meta').on('value', s => {
+        const meta = s.val() || {};
+        totalMachines = parseInt(meta.totalMachines) || 0;
+        document.getElementById('total-val').innerText = totalMachines;
+        loadCurrentStats();
+    });
+
+    // 2. 攞返目前已經更新咗幾多部
+    function loadCurrentStats() {
+        db.ref('v15_data/' + pathRef + '/update_stats').once('value', s => {
+            const count = s.val() || 0;
+            document.getElementById('done-count').value = count;
+            updateUI();
+        });
+    }
+
+    // 3. 撳數字時即刻變進度條
+    function updateUI() {
+        const done = parseInt(document.getElementById('done-count').value) || 0;
+        const per = totalMachines > 0 ? Math.round((done / totalMachines) * 100) : 0;
+        document.getElementById('percent').innerText = per + '%';
+        document.getElementById('fill').style.width = per + '%';
+    }
+
+    // 4. 儲存
+    function saveData() {
+        const done = parseInt(document.getElementById('done-count').value) || 0;
+        if(done > totalMachines) {
+            alert("Completed units cannot exceed total machines!");
+            return;
+        }
+        // 儲存數字
+        db.ref('v15_data/' + pathRef + '/update_stats').set(done);
+        
+        // 重要：為咗配合首頁個進度條 logic (hw=='OK' && sw=='OK')
+        // 我哋喺度求其寫一個 tasks 入面嘅紀錄，首頁就會識計數
+        // 如果你首頁進度條係直接讀 update_stats，就唔使理呢度
+        alert("Saved successfully!");
+    }
+</script>
+</body>
+</html>
