@@ -68,8 +68,9 @@
 <div id="template-modal">
     <div class="modal-content">
         <h3>SELECT TEMPLATE</h3>
-        <select id="tpl-dropdown"></select>
-        <div style="display:flex; gap:10px; justify-content:center;">
+        <p id="loading-msg" style="color: #666; font-size: 0.8rem;">Scanning templates folder...</p>
+        <select id="tpl-dropdown" style="display:none;"></select>
+        <div id="modal-actions" style="display:none; gap:10px; justify-content:center;">
             <button class="modal-btn" style="background:var(--success); color:#000;" onclick="confirmAddReport()">OK</button>
             <button class="modal-btn" style="background:#444; color:#fff;" onclick="closeModal()">CANCEL</button>
         </div>
@@ -82,12 +83,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // --- 模板清單配置位 ---
-    // 我幫你執返好咗，而家得返你資料夾入面嗰 2 個 Simple
-    const TEMPLATE_LIST = [
-        { name: "G2E Simple", path: "templates/G2E_Simple.html" },
-        { name: "GV Simple", path: "templates/GV_Simple.html" }
-    ];
+    // --- GitHub 配置 ---
+    const GH_REPO = "kaig898/LTGameTechReport"; // 確認係你個 Repo 路徑
+    const GH_TOKEN = ""; // 如果 Repo 係 Private 就填 Token，Public 就留空
 
     let allData = {}, path = [], tempName = "";
 
@@ -122,21 +120,51 @@
         });
     }
 
-    function addItem(t) {
+    async function addItem(t) {
         if(!isAdmin) return;
         const n = document.getElementById('new-name').value.trim();
         if(!n) return;
         
         if(t === 'report') {
             tempName = n;
-            const dropdown = document.getElementById('tpl-dropdown');
-            dropdown.innerHTML = "";
-            TEMPLATE_LIST.forEach(tpl => {
-                dropdown.innerHTML += `<option value="${tpl.path}">${tpl.name}</option>`;
-            });
             document.getElementById('template-modal').style.display = 'flex';
+            document.getElementById('loading-msg').style.display = 'block';
+            document.getElementById('tpl-dropdown').style.display = 'none';
+            document.getElementById('modal-actions').style.display = 'none';
+            
+            await scanTemplates();
         } else {
             saveItem(n, 'folder', 'index.html');
+        }
+    }
+
+    // --- 自動掃描 GitHub templates 文件夾 ---
+    async function scanTemplates() {
+        const url = `https://api.github.com/repos/${GH_REPO}/contents/templates`;
+        const headers = GH_TOKEN ? { 'Authorization': `token ${GH_TOKEN}` } : {};
+        
+        try {
+            const response = await fetch(url, { headers });
+            const files = await response.json();
+            const dropdown = document.getElementById('tpl-dropdown');
+            dropdown.innerHTML = "";
+            
+            // 加入原本在根目錄的母版作為備選
+            dropdown.innerHTML += `<option value="G2E_Macau.html">G2E_Macau.html (ROOT)</option>`;
+
+            files.forEach(file => {
+                if(file.name.endsWith('.html')) {
+                    dropdown.innerHTML += `<option value="templates/${file.name}">${file.name}</option>`;
+                }
+            });
+
+            document.getElementById('loading-msg').style.display = 'none';
+            dropdown.style.display = 'block';
+            document.getElementById('modal-actions').style.display = 'flex';
+        } catch (error) {
+            console.error("Scan Error:", error);
+            alert("Failed to scan templates folder. Check GH_REPO or GH_TOKEN.");
+            closeModal();
         }
     }
 
