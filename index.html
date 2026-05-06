@@ -39,27 +39,23 @@
         .edit-btn { background: var(--admin-gold); color: #000; }
         .del-btn { background: var(--danger); color: #fff; }
 
-        /* 黑色金邊彈窗風格 */
         #template-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .modal-content { background: #0f172a; border: 2px solid var(--admin-gold); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 320px; }
         .modal-content h3 { font-family: 'Orbitron'; color: var(--admin-gold); margin-bottom: 20px; }
         .modal-content select { width: 100%; margin-bottom: 20px; border: 1px solid var(--admin-gold); }
         .modal-btn { padding: 10px 20px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-family: 'Orbitron'; }
-        
-        .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
-        .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1 id="header-title" onclick="editGlobalConfig('title')">LTGAME MASTER OPS</h1>
+        <h1 id="header-title">LTGAME MASTER OPS</h1>
         <div id="admin-bar">
             <input type="text" id="new-name" placeholder="Item Name">
             <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold;">+ FOLDER</button>
             <button onclick="addItem('report')" style="background:var(--success); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold;">+ REPORT</button>
-            <button onclick="logoutAdmin()" style="background:#444; color:#fff; padding:10px; margin-left:10px; border-radius:4px;">EXIT ADMIN</button>
+            <button onclick="logoutAdmin()" style="background:#444; color:#fff; padding:10px; margin-left:10px; border-radius:4px;">EXIT</button>
         </div>
         <div class="nav-bar">
             <button class="nav-btn-home" onclick="jumpTo(-1)">PROJECT</button>
@@ -69,7 +65,6 @@
     <div id="view" class="grid"></div>
 </div>
 
-<!-- 下拉選單彈窗 -->
 <div id="template-modal">
     <div class="modal-content">
         <h3>SELECT TEMPLATE</h3>
@@ -88,11 +83,10 @@
     const db = firebase.database();
     
     // --- 模板清單配置位 ---
-    // 你以後喺 templates 資料夾加咗新 file，只需要喺下面加名就得
+    // 我幫你執返好咗，而家得返你資料夾入面嗰 2 個 Simple
     const TEMPLATE_LIST = [
         { name: "G2E Simple", path: "templates/G2E_Simple.html" },
-        { name: "GV Simple", path: "templates/GV_Simple.html" },
-        { name: "Master Macau", path: "G2E_Macau.html" }
+        { name: "GV Simple", path: "templates/GV_Simple.html" }
     ];
 
     let allData = {}, path = [], tempName = "";
@@ -119,8 +113,8 @@
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
             div.onclick = (e) => {
-                if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
-                if (isReport) { window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
+                if (e.target.closest('.admin-btns')) return;
+                if (isReport) { window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}`; }
                 else { path.push(key); render(); }
             };
             div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="name-text">${key}</div>`;
