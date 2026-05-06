@@ -8,130 +8,137 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
-        :root { --bg: #02040a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
+        :root { --bg: #02040a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; --border: rgba(245, 158, 11, 0.2); }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
         
-        .header { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(245, 158, 11, 0.3); padding: 20px; border-radius: 8px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-        h2 { margin: 0; font-family: 'Orbitron'; color: var(--accent); letter-spacing: 2px; }
-        .back-btn { background: #334155; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; }
-
-        .main-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px; text-align: center; max-width: 600px; margin: 0 auto; }
+        .header-card { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border); padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; box-shadow: 0 0 20px rgba(245, 158, 11, 0.1); }
+        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h2 { margin: 0; font-family: 'Orbitron'; font-size: 1.1rem; color: var(--accent); }
         
-        /* 數值輸入區域 */
-        .status-display { margin-bottom: 30px; }
-        .percent-val { font-family: 'Orbitron'; font-size: 4rem; font-weight: 900; color: var(--success); text-shadow: 0 0 20px rgba(57, 255, 20, 0.3); margin-bottom: 10px; }
+        .back-btn { background: #334155; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; }
         
-        .progress-container { width: 100%; background: rgba(255,255,255,0.05); height: 24px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 30px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
-
-        .input-section { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; }
-        .input-box { text-align: center; }
-        .input-box label { display: block; font-size: 0.8rem; color: #888; font-family: 'Orbitron'; margin-bottom: 8px; }
+        #admin-panel { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; gap: 10px; }
+        .admin-active #admin-panel { display: flex; align-items: center; }
+        input.admin-in { background: #000; border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 4px; width: 140px; }
         
-        input[type="number"] { background: #000; border: 2px solid var(--accent); color: #fff; font-family: 'Orbitron'; font-size: 2rem; width: 130px; text-align: center; border-radius: 8px; padding: 10px; outline: none; }
-        input:focus { box-shadow: 0 0 15px var(--accent); }
+        /* 1行1部機嘅列表 */
+        .unit-list { display: flex; flex-direction: column; gap: 8px; }
+        .unit-row { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; transition: 0.2s; }
+        .unit-row:hover { border-color: var(--accent); }
         
-        .divider { font-family: 'Orbitron'; font-size: 2rem; color: #444; padding-top: 25px; }
-        .total-display { font-family: 'Orbitron'; font-size: 2rem; color: #fff; padding-top: 25px; }
-
-        .save-btn { background: var(--success); color: #000; border: none; padding: 15px 50px; border-radius: 6px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; font-size: 1.1rem; transition: 0.3s; width: 100%; }
-        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(57, 255, 20, 0.4); }
+        .unit-name { font-family: 'Orbitron'; font-size: 1rem; color: #fff; width: 120px; }
+        
+        /* 同事輸入進度位 */
+        .progress-section { flex: 1; display: flex; align-items: center; gap: 15px; }
+        .p-bar-bg { flex: 1; background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .p-bar-fill { height: 100%; background: var(--success); transition: width 0.4s; }
+        
+        input.done-input { background: #000; border: 1px solid #444; color: var(--success); font-family: 'Orbitron'; width: 70px; text-align: center; padding: 5px; border-radius: 4px; font-size: 1rem; }
+        input.done-input:focus { border-color: var(--success); outline: none; }
+        
+        .total-label { font-family: 'Orbitron'; font-size: 0.9rem; color: #666; width: 60px; }
+        
+        .del-btn { background: #ff003c; color: #fff; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: none; font-weight: bold; }
+        .admin-active .del-btn { display: block; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <button class="back-btn" onclick="window.location.href='../index.html'">BACK</button>
-        <h2 id="casino-title">CASINO NAME</h2>
-        <div id="status-tag" style="font-family:'Orbitron'; font-size:0.8rem; color:var(--success);">LIVE DATA</div>
+<div class="container" id="main-ui">
+    <div class="header-card">
+        <div class="top-row">
+            <button class="back-btn" onclick="window.location.href='../index.html'">BACK</button>
+            <h2 id="casino-title">CASINO UPDATE</h2>
+            <div id="overall-prog" style="font-family:'Orbitron'; color:var(--success); font-weight:900;">0%</div>
+        </div>
+        
+        <div id="admin-panel">
+            <input type="text" id="new-unit" class="admin-in" placeholder="Machine Name">
+            <input type="number" id="new-total" class="admin-in" placeholder="Total (e.g. 10)" style="width: 80px;">
+            <button onclick="addUnit()" style="background:var(--accent); color:#000; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">+ ADD MACHINE</button>
+        </div>
     </div>
 
-    <div class="main-card">
-        <div class="status-display">
-            <div class="percent-val" id="percent-text">0%</div>
-            <div class="progress-container">
-                <div class="progress-fill" id="bar-fill"></div>
-            </div>
-        </div>
-
-        <div class="input-section">
-            <div class="input-box">
-                <label>UPDATED UNITS</label>
-                <input type="number" id="done-input" value="0" oninput="calculate()">
-            </div>
-            <div class="divider">/</div>
-            <div class="input-box">
-                <label>TOTAL MACHINES</label>
-                <div class="total-display" id="total-text">0</div>
-            </div>
-        </div>
-
-        <button class="save-btn" onclick="saveData()">SAVE STATUS</button>
-    </div>
+    <div id="list" class="unit-list"></div>
 </div>
 
 <script>
+    let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
     const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 解析 URL 參數
     const urlParams = new URLSearchParams(window.location.search);
     const venue = urlParams.get('v') || "Unknown";
     const rawP = urlParams.get('p') || "";
     const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
+    const dbTasks = db.ref('v15_data/' + pathRef + '/tasks');
 
     document.getElementById('casino-title').innerText = venue.toUpperCase().replace(/_/g, ' ');
+    if(isAdmin) document.getElementById('main-ui').classList.add('admin-active');
 
-    let totalVal = 0;
-
-    // 1. 從 Firebase 獲取總機數 (meta 資料)
-    db.ref('v15_data/' + pathRef + '/_meta').on('value', s => {
-        const meta = s.val() || {};
-        totalVal = parseInt(meta.totalMachines) || 0;
-        document.getElementById('total-text').innerText = totalVal;
+    dbTasks.on('value', s => {
+        const data = s.val() || {};
+        const listDiv = document.getElementById('list');
+        listDiv.innerHTML = "";
         
-        // 2. 攞返之前儲低嘅更新數量
-        db.ref('v15_data/' + pathRef + '/updated_count').once('value', s => {
-            const count = s.val() || 0;
-            document.getElementById('done-input').value = count;
-            calculate();
+        let grandTotal = 0, grandDone = 0;
+
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const done = parseInt(item.doneCount) || 0;
+            const total = parseInt(item.totalCount) || 0;
+            const per = total > 0 ? Math.round((done / total) * 100) : 0;
+            
+            grandDone += done;
+            grandTotal += total;
+
+            const row = document.createElement('div');
+            row.className = 'unit-row';
+            row.innerHTML = `
+                <div class="unit-name">${key}</div>
+                <div class="progress-section">
+                    <div class="p-bar-bg"><div class="p-bar-fill" style="width:${per > 100 ? 100 : per}%"></div></div>
+                    <input type="number" class="done-input" value="${done}" onchange="updateProgress('${key}', this.value, ${total})">
+                    <div class="total-label">/ ${total}</div>
+                </div>
+                <button class="del-btn" onclick="delUnit('${key}')">✕</button>
+            `;
+            listDiv.appendChild(row);
+        });
+        
+        const overall = grandTotal > 0 ? Math.round((grandDone / grandTotal) * 100) : 0;
+        document.getElementById('overall-prog').innerText = overall + '%';
+        
+        // 重要：將數據寫入首頁識讀嘅位，等首頁進度條識郁
+        db.ref('v15_data/' + pathRef + '/_meta').update({
+            totalMachines: grandTotal,
+            // 模擬首頁計數 logic：首頁會數 tasks 入面有幾多個 OK
+            // 為左簡單，我地直接喺 meta 存一個數字等 index 讀
         });
     });
 
-    // 3. 即時計百分比同郁進度條
-    function calculate() {
-        const done = parseInt(document.getElementById('done-input').value) || 0;
-        const per = totalVal > 0 ? Math.round((done / totalVal) * 100) : 0;
-        
-        // 限制唔過 100% (視覺上)
-        const displayPer = per > 100 ? 100 : per;
-        
-        document.getElementById('percent-text').innerText = per + '%';
-        document.getElementById('bar-fill').style.width = displayPer + '%';
-        
-        // 顏色變化
-        if(per >= 100) document.getElementById('percent-text').style.color = 'var(--success)';
-        else if(per > 0) document.getElementById('percent-text').style.color = 'var(--accent)';
-    }
-
-    // 4. 儲存數據
-    function saveData() {
-        const done = parseInt(document.getElementById('done-input').value) || 0;
-        
-        // 儲存實際數字到 Firebase
-        db.ref('v15_data/' + pathRef + '/updated_count').set(done).then(() => {
-            alert("Update successful!");
-        });
-
-        // 如果你想首頁嗰粒進度條都識郁，就要喺度順便寫一筆 tasks 紀錄
-        // 呢度係一個 trick，等 index.html 以為你有機整好咗
-        db.ref('v15_data/' + pathRef + '/tasks/global_stat').update({
-            hw: done >= totalVal ? 'OK' : 'PND',
-            sw: done >= totalVal ? 'OK' : 'PND'
+    function updateProgress(id, val, total) {
+        const v = parseInt(val) || 0;
+        dbTasks.child(id).update({ 
+            doneCount: v,
+            // 同時更新 hw/sw 狀態等首頁進度條計到數
+            hw: v >= total ? 'OK' : 'PND',
+            sw: v >= total ? 'OK' : 'PND'
         });
     }
+
+    function addUnit() {
+        const name = document.getElementById('new-unit').value.trim();
+        const total = document.getElementById('new-total').value.trim();
+        if(!name || !total) return;
+        dbTasks.child(name).set({ doneCount: 0, totalCount: total, hw: 'PND', sw: 'PND' });
+        document.getElementById('new-unit').value = "";
+        document.getElementById('new-total').value = "";
+    }
+
+    function delUnit(key) { if(confirm('Delete?')) dbTasks.child(key).remove(); }
 </script>
 </body>
 </html>
