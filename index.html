@@ -66,6 +66,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
+    // --- GitHub API 設定 ---
+    const GH_AUTH = '你的_GITHUB_TOKEN'; // 填入 Token
+    const GH_REPO = 'kaig898/LTGameTechReport';
+
     let allData = {}, path = [];
     let config = { title: "LTGAME MASTER OPS", rootName: "PROJECT" };
 
@@ -77,23 +81,50 @@
         }
         render();
     });
-
     db.ref('v15_data').on('value', s => { allData = s.val() || {}; render(); });
 
-    function editGlobalConfig(type) {
-        if(!isAdmin) return;
-        const currentVal = (type === 'title') ? config.title : config.rootName;
-        const newVal = prompt(`ENTER NEW ${type.toUpperCase()}:`, currentVal);
-        if(newVal && newVal.trim() !== "") {
-            db.ref('v15_config').update({ [type]: newVal.trim() });
-        }
+    // GitHub API: 讀取模板並生成新檔案到 project/ 資料夾
+    async function createPhysicalFile(templateName, projectName) {
+        if(!GH_AUTH || GH_AUTH.includes('你的')) return false;
+        const sourcePath = `templates/${templateName}.html`;
+        const destPath = `project/project_${projectName.toLowerCase()}.html`;
+        
+        try {
+            // 1. 攞模板內容
+            const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${sourcePath}`, {
+                headers: { 'Authorization': `token ${GH_AUTH}` }
+            });
+            const data = await res.json();
+            
+            // 2. 寫入到新路徑
+            const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${destPath}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GH_AUTH}` },
+                body: JSON.stringify({
+                    message: `Auto-create project file: ${projectName}`,
+                    content: data.content,
+                    branch: "main"
+                })
+            });
+            return putRes.ok;
+        } catch(e) { console.error(e); return false; }
     }
 
-    function rootClickHandle(e) {
-        if(isAdmin && path.length === 0) {
-            if(confirm("RENAME THIS BUTTON?")) { editGlobalConfig('rootName'); return; }
-        }
-        jumpTo(-1);
+    // GitHub API: 刪除實體檔案
+    async function deletePhysicalFile(fileName) {
+        if(!GH_AUTH || GH_AUTH.includes('你的')) return;
+        const destPath = `project/project_${fileName.toLowerCase()}.html`;
+        try {
+            const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${destPath}`);
+            const data = await res.json();
+            if(data.sha) {
+                await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${destPath}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `token ${GH_AUTH}` },
+                    body: JSON.stringify({ message: `Delete ${fileName}`, sha: data.sha, branch: "main" })
+                });
+            }
+        } catch(e) { console.error(e); }
     }
 
     function render() {
@@ -118,10 +149,7 @@
             div.style.setProperty('--c', color);
             div.onclick = (e) => {
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
-                if (isReport) { 
-                    // 這裡改為連結到 G2E_Macau.html 作為 Template
-                    window.location.href = `${meta.targetHtml || 'G2E_Macau.html'}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; 
-                }
+                if (isReport) { window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
                 else { path.push(key); render(); }
             };
             div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>`;
@@ -129,29 +157,46 @@
         });
     }
 
-    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
-    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-    
-    // 修復：addItem 自動預設為 G2E_Macau.html
-    function addItem(t) { 
-        if(!isAdmin) return; 
-        const n = document.getElementById('new-name').value.trim(); 
-        if(!n) return; 
-        let ref = db.ref('v15_data'); 
-        path.forEach(p => ref = ref.child(p)); 
-        ref.child(n).update({ 
-            _meta: { 
-                type: t, 
-                color: t==='report'?"#39ff14":"#00f2ff", 
-                targetHtml: t==='report'?"G2E_Macau.html":"", 
-                displayLabel: t==='report'?"REPORT":"FOLDER" 
-            } 
-        }); 
-        document.getElementById('new-name').value = ''; 
+    async function addItem(t) {
+        if(!isAdmin) return;
+        const n = document.getElementById('new-name').value.trim();
+        if(!n) return;
+        
+        let targetFile = "";
+        if(t === 'report') {
+            const choice = prompt("選擇模板 (1: G2E_Simple, 2: GV_Simple):", "G2E_Simple");
+            if(!choice) return;
+            const success = await createPhysicalFile(choice, n);
+            if(!success) { alert("GitHub 檔案生成失敗！"); return; }
+            targetFile = `project/project_${n.toLowerCase()}.html`;
+        }
+
+        let ref = db.ref('v15_data');
+        path.forEach(p => ref = ref.child(p));
+        ref.child(n).update({
+            _meta: { type: t, color: t==='report'?"#39ff14":"#00f2ff", targetHtml: targetFile, displayLabel: t==='report'?"REPORT":"FOLDER" }
+        });
+        document.getElementById('new-name').value = '';
     }
 
-    function delItem(e, k) { e.stopPropagation(); if(!isAdmin) return; if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-    
+    function delItem(e, k) {
+        e.stopPropagation();
+        if(!isAdmin || !confirm(`Delete ${k}?`)) return;
+        let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p));
+        deletePhysicalFile(k);
+        r.child(k).remove();
+    }
+
+    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
+    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
+    function editGlobalConfig(type) {
+        if(!isAdmin) return;
+        const currentVal = (type === 'title') ? config.title : config.rootName;
+        const newVal = prompt(`ENTER NEW ${type.toUpperCase()}:`, currentVal);
+        if(newVal && newVal.trim() !== "") db.ref('v15_config').update({ [type]: newVal.trim() });
+    }
+    function rootClickHandle(e) { if(isAdmin && path.length === 0) { if(confirm("RENAME?")) editGlobalConfig('rootName'); } jumpTo(-1); }
+
     function showEdit(e, key) {
         e.stopPropagation();
         const parent = e.target.closest('.card');
@@ -161,9 +206,9 @@
         overlay.className = 'edit-overlay';
         overlay.innerHTML = `
             <label>NAME</label><input type="text" id="ed-n" value="${key}">
-            <label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}">
+            <label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || ''}">
             <label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select>
-            <label>HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
+            <label>HTML PATH</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
             <label>COLOR</label><input type="color" id="ed-c" value="${meta.color||'#00f2ff'}">
             <div class="overlay-btns">
                 <button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button>
