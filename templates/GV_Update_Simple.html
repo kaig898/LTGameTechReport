@@ -3,62 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GV Update Status (Scheduled)</title>
+    <title>Casino Update Schedule</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
-        :root { --bg: #02040a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; --border: rgba(245, 158, 11, 0.2); }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
+        :root { --bg: #02040a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; --card: rgba(15, 23, 42, 0.9); }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; background-image: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.01), rgba(0,0,255,0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
         .container { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
         
-        .header-card { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border); padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; box-shadow: 0 0 20px rgba(245, 158, 11, 0.1); }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        h2 { margin: 0; font-family: 'Orbitron'; font-size: 1.1rem; color: var(--accent); }
-        
+        /* Header */
+        .header-card { background: var(--card); border: 1px solid rgba(245,158,11,0.3); padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 10px; z-index: 1000; }
         .back-btn { background: #334155; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; }
         
-        #admin-panel { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; gap: 10px; flex-wrap: wrap; }
-        .admin-active #admin-panel { display: flex; align-items: center; }
-        input.admin-in { background: #000; border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 4px; font-size: 0.9rem; }
+        /* Admin Panel */
+        #admin-panel { display: none; background: rgba(245,158,11,0.05); border: 1px solid var(--accent); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .admin-active #admin-panel { display: block; }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Rajdhani'; }
         
-        .unit-list { display: flex; flex-direction: column; gap: 8px; }
-        .unit-row { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; transition: 0.2s; }
-        .unit-row.waiting { opacity: 0.4; border-style: dashed; } /* 預覽排程中嘅機 */
+        /* Casino Row (1行1個) */
+        .casino-row { position: relative; perspective: 1000px; margin-bottom: 15px; min-height: 80px; }
+        .row-inner { position: relative; width: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; }
+        .row-inner.flipped { transform: rotateX(180deg); }
         
-        .unit-name { font-family: 'Orbitron'; font-size: 1rem; color: #fff; width: 150px; }
-        .progress-section { flex: 1; display: flex; align-items: center; gap: 15px; }
-        .p-bar-bg { flex: 1; background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; }
-        .p-bar-fill { height: 100%; background: var(--success); transition: width 0.4s; }
+        .row-front, .row-back { position: absolute; width: 100%; backface-visibility: hidden; border-radius: 8px; box-sizing: border-box; }
         
-        input.done-input { background: #000; border: 1px solid #444; color: var(--success); font-family: 'Orbitron'; width: 65px; text-align: center; padding: 5px; border-radius: 4px; }
-        .total-label { font-family: 'Orbitron'; font-size: 0.8rem; color: #666; width: 50px; }
+        /* 正面：進度條與數據 */
+        .row-front { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; display: flex; align-items: center; gap: 20px; z-index: 2; }
+        .casino-name { font-family: 'Orbitron'; font-size: 1.1rem; width: 180px; color: #fff; }
+        .prog-container { flex: 1; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 1s ease; }
+        .count-display { font-family: 'Orbitron'; width: 120px; text-align: right; font-size: 0.9rem; }
+        .percent-tag { color: var(--success); font-weight: bold; margin-left: 10px; }
         
-        .del-btn { background: #ff003c; color: #fff; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: none; font-weight: bold; }
-        .admin-active .del-btn { display: block; }
-        
-        .schedule-tag { font-size: 0.65rem; color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px; border-radius: 3px; font-family: 'Orbitron'; }
+        /* 反面：Log 紀錄 */
+        .row-back { background: #1e293b; transform: rotateX(180deg); padding: 15px 20px; z-index: 1; border: 1px solid var(--accent); }
+        .log-title { font-family: 'Orbitron'; font-size: 0.7rem; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+        .log-list { font-size: 0.85rem; color: #aaa; max-height: 100px; overflow-y: auto; }
+        .log-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 3px 0; }
+
+        .del-btn { background: #ff003c; border: none; color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
-<div class="container" id="main-ui">
+<div class="container" id="app">
     <div class="header-card">
-        <div class="top-row">
-            <button class="back-btn" onclick="window.location.href='../index.html'">BACK</button>
-            <h2 id="casino-title">CASINO UPDATE</h2>
-            <div id="overall-prog" style="font-family:'Orbitron'; color:var(--success); font-weight:900;">0%</div>
+        <button class="back-btn" onclick="window.location.href='../index.html'">BACK</button>
+        <h2 style="font-family:'Orbitron'; color:var(--accent); margin:0;">CASINO MASTER UPDATE</h2>
+        <div id="clock" style="font-family:'Orbitron'; font-size:0.8rem; color:var(--success);"></div>
+    </div>
+
+    <div id="admin-panel">
+        <div class="log-title">Add / Update Casino Project</div>
+        <div class="input-row">
+            <input type="text" id="cas-name" placeholder="Casino Name" style="width:200px;">
+            <input type="number" id="cas-total" placeholder="Total Units" style="width:100px;">
         </div>
-        
-        <div id="admin-panel">
-            <input type="text" id="new-unit" class="admin-in" placeholder="Machine Group Name" style="width:160px;">
-            <input type="number" id="new-total" class="admin-in" placeholder="Total" style="width:70px;">
-            <input type="date" id="new-date" class="admin-in" title="Schedule Date">
-            <button onclick="addUnit()" style="background:var(--accent); color:#000; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">+ SCHEDULE</button>
+        <div class="input-row">
+            <input type="datetime-local" id="cas-time" title="Schedule Date & Time">
+            <input type="number" id="cas-target" placeholder="Update to (Qty)" style="width:120px;">
+            <button onclick="addProject()" style="background:var(--success); border:none; padding:10px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">SAVE SCHEDULE</button>
         </div>
     </div>
 
-    <div id="list" class="unit-list"></div>
+    <div id="list"></div>
 </div>
 
 <script>
@@ -67,89 +77,121 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // 取得當前路徑
     const urlParams = new URLSearchParams(window.location.search);
-    const venue = urlParams.get('v') || "Unknown";
+    const venue = urlParams.get('v') || "Root";
     const rawP = urlParams.get('p') || "";
     const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
-    const dbTasks = db.ref('v15_data/' + pathRef + '/tasks');
+    const dbRef = db.ref('v15_data/' + pathRef + '/projects');
 
-    document.getElementById('casino-title').innerText = venue.toUpperCase().replace(/_/g, ' ');
-    if(isAdmin) {
-        document.getElementById('main-ui').classList.add('admin-active');
-        // 預設今日日期
-        document.getElementById('new-date').value = new Date().toISOString().split('T')[0];
-    }
+    if(isAdmin) document.getElementById('app').classList.add('admin-active');
 
-    dbTasks.on('value', s => {
-        const data = s.val() || {};
+    // 即時時鐘
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleString();
+        checkSchedule(); // 每一秒檢查一次時間
+    }, 1000);
+
+    let localProjects = {};
+
+    dbRef.on('value', s => {
+        localProjects = s.val() || {};
+        renderList();
+    });
+
+    function renderList() {
         const listDiv = document.getElementById('list');
         listDiv.innerHTML = "";
-        
-        let grandTotal = 0, grandDone = 0;
-        const now = new Date().toISOString().split('T')[0]; // 今日日期 YYYY-MM-DD
+        const now = new Date().getTime();
 
-        Object.keys(data).forEach(key => {
-            const item = data[key];
-            const schDate = item.schDate || "2026-01-01";
-            const isReady = (now >= schDate); // 判斷日期到咗未
-
-            // 如果日期未到，且唔係 Admin，就完全唔顯示
-            if (!isReady && !isAdmin) return;
-
-            const done = parseInt(item.doneCount) || 0;
-            const total = parseInt(item.totalCount) || 0;
-            const per = total > 0 ? Math.round((done / total) * 100) : 0;
+        Object.keys(localProjects).forEach(key => {
+            const p = localProjects[key];
             
-            // 只有過咗排程時間嘅機先計入總進度
-            if (isReady) {
-                grandDone += done;
-                grandTotal += total;
+            // 計算當前進度：如果時間到咗，就顯示 targetQty，否則顯示舊嘅 qty
+            let currentQty = p.currentQty || 0;
+            const schTime = new Date(p.schTime).getTime();
+            
+            // 自動更新邏輯 (當前時間 > 設定時間)
+            if (now >= schTime && p.schTarget > currentQty) {
+                currentQty = p.schTarget;
+                // 自動寫入 Log (只會寫一次)
+                if (p.lastLogTime !== p.schTime) {
+                    autoLog(key, p.schTarget, p.schTime);
+                }
             }
 
+            const total = p.totalUnits || 1;
+            const per = Math.round((currentQty / total) * 100);
+
             const row = document.createElement('div');
-            row.className = `unit-row ${!isReady ? 'waiting' : ''}`;
+            row.className = 'casino-row';
             row.innerHTML = `
-                <div class="unit-name">
-                    ${key}
-                    ${!isReady ? `<div class="schedule-tag">START: ${schDate}</div>` : ''}
+                <div class="row-inner" id="inner-${key}" onclick="this.classList.toggle('flipped')">
+                    <div class="row-front">
+                        <div class="casino-name">${key}</div>
+                        <div class="prog-container">
+                            <div class="prog-fill" style="width:${per}%"></div>
+                        </div>
+                        <div class="count-display">
+                            ${currentQty} / ${total} <span class="percent-tag">${per}%</span>
+                        </div>
+                        ${isAdmin ? `<button class="del-btn" onclick="event.stopPropagation(); deleteProject('${key}')">✕</button>` : ''}
+                    </div>
+                    <div class="row-back">
+                        <div class="log-title">Update Logs (Last 5)</div>
+                        <div class="log-list" id="logs-${key}">
+                            ${(p.logs || []).reverse().map(l => `<div class="log-item">${l}</div>`).join('')}
+                            ${!(p.logs) ? '<div class="log-item">No records found.</div>' : ''}
+                        </div>
+                    </div>
                 </div>
-                <div class="progress-section" style="${!isReady ? 'pointer-events:none; opacity:0.3' : ''}">
-                    <div class="p-bar-bg"><div class="p-bar-fill" style="width:${per > 100 ? 100 : per}%"></div></div>
-                    <input type="number" class="done-input" value="${done}" onchange="updateProgress('${key}', this.value, ${total})">
-                    <div class="total-label">/ ${total}</div>
-                </div>
-                <button class="del-btn" onclick="delUnit('${key}')">✕</button>
             `;
             listDiv.appendChild(row);
         });
-        
-        const overall = grandTotal > 0 ? Math.round((grandDone / grandTotal) * 100) : 0;
-        document.getElementById('overall-prog').innerText = overall + '%';
-        
-        // 更新 meta 等首頁讀取
-        db.ref('v15_data/' + pathRef + '/_meta').update({ totalMachines: grandTotal });
-    });
+    }
 
-    function updateProgress(id, val, total) {
-        const v = parseInt(val) || 0;
-        dbTasks.child(id).update({ 
-            doneCount: v,
-            hw: v >= total ? 'OK' : 'PND',
-            sw: v >= total ? 'OK' : 'PND'
+    // 當時間到，自動觸發數據更新並存檔
+    function checkSchedule() {
+        const now = new Date().getTime();
+        let needUpdate = false;
+
+        Object.keys(localProjects).forEach(key => {
+            const p = localProjects[key];
+            const schTime = new Date(p.schTime).getTime();
+            if (now >= schTime && p.schTarget > (p.currentQty || 0)) {
+                // 時間到！觸發寫入資料庫
+                dbRef.child(key).update({
+                    currentQty: p.schTarget,
+                    lastLogTime: p.schTime,
+                    logs: [...(p.logs || []), `${new Date(schTime).toLocaleString()} - Updated to ${p.schTarget} units (Scheduled)`]
+                });
+            }
         });
     }
 
-    function addUnit() {
-        const name = document.getElementById('new-unit').value.trim();
-        const total = document.getElementById('new-total').value.trim();
-        const sDate = document.getElementById('new-date').value;
-        if(!name || !total || !sDate) return;
-        dbTasks.child(name).set({ doneCount: 0, totalCount: total, schDate: sDate, hw: 'PND', sw: 'PND' });
-        document.getElementById('new-unit').value = "";
-        document.getElementById('new-total').value = "";
+    function addProject() {
+        const name = document.getElementById('cas-name').value.trim();
+        const total = parseInt(document.getElementById('cas-total').value) || 0;
+        const time = document.getElementById('cas-time').value;
+        const target = parseInt(document.getElementById('cas-target').value) || 0;
+
+        if(!name || !time) return alert("Please fill all fields!");
+
+        dbRef.child(name).update({
+            totalUnits: total,
+            schTime: time,
+            schTarget: target,
+            currentQty: localProjects[name] ? (localProjects[name].currentQty || 0) : 0,
+            logs: localProjects[name] ? (localProjects[name].logs || []) : []
+        });
+
+        alert("Schedule Saved!");
     }
 
-    function delUnit(key) { if(confirm('Delete?')) dbTasks.child(key).remove(); }
+    function deleteProject(key) {
+        if(confirm(`Delete ${key}?`)) dbRef.child(key).remove();
+    }
 </script>
 </body>
 </html>
