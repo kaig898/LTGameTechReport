@@ -1,1 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GV Update Status</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
+        :root { --bg: #02040a; --card-bg: #0f172a; --accent: #f59e0b; --success: #39ff14; --text: #e2e8f0; --border: rgba(245, 158, 11, 0.3); }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding-bottom: 60px; }
+        
+        .header-card { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 12px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; border: 1px solid var(--border); box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+        .nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        h2 { margin: 0; font-family: 'Orbitron'; font-size: 1.2rem; color: var(--accent); }
+        
+        .back-btn { background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; }
+        
+        #admin-panel { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+        .admin-active #admin-panel { display: block; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .unit-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; position: relative; transition: 0.3s; }
+        .unit-card.completed { border-color: var(--success); box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.1); }
+        
+        .unit-id { font-family: 'Orbitron'; font-size: 1.1rem; color: #fff; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        
+        /* 狀態按鈕 */
+        .status-group { display: flex; gap: 5px; margin-bottom: 15px; }
+        .s-btn { flex: 1; padding: 10px 5px; border: none; border-radius: 4px; font-family: 'Rajdhani'; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: #1e293b; color: #64748b; transition: 0.2s; }
+        .s-btn.active[data-val="PND"] { background: #475569; color: #fff; }
+        .s-btn.active[data-val="ING"] { background: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent); }
+        .s-btn.active[data-val="OK"] { background: var(--success); color: #000; box-shadow: 0 0 10px var(--success); }
 
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem; margin-bottom: 10px; }
+        .info-item label { display: block; color: #64748b; font-size: 0.65rem; font-family: 'Orbitron'; }
+        .info-item span { color: #fff; font-weight: 600; }
+
+        input.remark { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px; border-radius: 4px; box-sizing: border-box; font-size: 0.85rem; }
+        
+        .del-btn { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff003c; color: #fff; border: none; border-radius: 50%; cursor: pointer; display: none; font-weight: bold; }
+        .admin-active .del-btn { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-ui">
+    <div class="header-card">
+        <div class="nav-row">
+            <button class="back-btn" onclick="window.location.href='../index.html'">HOME</button>
+            <h2 id="title">CASINO UPDATE</h2>
+            <div id="prog-text" style="font-family:'Orbitron'; color:var(--success); font-weight:900;">0/0</div>
+        </div>
+        
+        <div id="admin-panel">
+            <input type="text" id="add-name" placeholder="Machine ID (e.g. A01)" style="background:#000; border:1px solid var(--accent); color:#fff; padding:8px; border-radius:4px; width:150px;">
+            <button onclick="addUnit()" style="background:var(--accent); color:#000; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">+ ADD</button>
+        </div>
+    </div>
+
+    <div id="list" class="grid"></div>
+</div>
+
+<script>
+    let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
+    const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const venue = urlParams.get('v') || "Unknown";
+    const rawP = urlParams.get('p') || "";
+    const pathRef = rawP ? rawP.replace(/,/g, '/') + '/' + venue : venue;
+    const dbTasks = db.ref('v15_data/' + pathRef + '/tasks');
+
+    document.getElementById('title').innerText = venue.toUpperCase().replace(/_/g, ' ');
+    if(isAdmin) document.getElementById('main-ui').classList.add('admin-active');
+
+    dbTasks.on('value', s => {
+        const data = s.val() || {};
+        const listDiv = document.getElementById('list');
+        listDiv.innerHTML = "";
+        
+        let okCount = 0, totalCount = Object.keys(data).length;
+
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const isDone = (item.hw === 'OK' && item.sw === 'OK');
+            if(isDone) okCount++;
+
+            const card = document.createElement('div');
+            card.className = `unit-card ${isDone ? 'completed' : ''}`;
+            card.innerHTML = `
+                <button class="del-btn" onclick="delUnit('${key}')">✕</button>
+                <div class="unit-id"><span>${key}</span></div>
+                
+                <div class="info-grid">
+                    <div class="info-item"><label>CURRENT VER</label><span>${item.curVer || 'V360'}</span></div>
+                    <div class="info-item"><label>TARGET VER</label><span>${item.tarVer || 'V370'}</span></div>
+                </div>
+
+                <div class="status-group">
+                    <button class="s-btn ${item.hw==='PND'?'active':''}" data-val="PND" onclick="setStatus('${key}','hw','PND')">PENDING</button>
+                    <button class="s-btn ${item.hw==='ING'?'active':''}" data-val="ING" onclick="setStatus('${key}','hw','ING')">UPDATING</button>
+                    <button class="s-btn ${item.hw==='OK'?'active':''}" data-val="OK" onclick="setStatus('${key}','hw','OK')">DONE</button>
+                </div>
+
+                <input type="text" class="remark" value="${item.note || ''}" placeholder="Notes..." onchange="dbTasks.child('${key}').child('note').set(this.value)">
+            `;
+            listDiv.appendChild(card);
+        });
+        
+        document.getElementById('prog-text').innerText = `${okCount} / ${totalCount}`;
+    });
+
+    // 重要：為了配合首頁進度條，我哋將 HW 同 SW 都設為一樣嘅狀態
+    function setStatus(id, type, val) {
+        // 喺呢個 Template，只要完成，HW 同 SW 都會變 OK，咁首頁進度條先會計數
+        if(val === 'OK') {
+            dbTasks.child(id).update({ hw: 'OK', sw: 'OK' });
+        } else {
+            dbTasks.child(id).update({ hw: val, sw: 'PND' });
+        }
+    }
+
+    function addUnit() {
+        const n = document.getElementById('add-name').value.trim();
+        if(!n) return;
+        dbTasks.child(n).set({ hw: 'PND', sw: 'PND', curVer: 'V360', tarVer: 'V370', note: '' });
+        document.getElementById('add-name').value = "";
+    }
+
+    function delUnit(key) { if(confirm('Delete?')) dbTasks.child(key).remove(); }
+</script>
+</body>
+</html>
