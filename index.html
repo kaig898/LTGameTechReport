@@ -12,9 +12,7 @@
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; min-height: 100vh; overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
         .header { text-align: center; margin-bottom: 10px; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; transition: 0.3s; }
-        .admin-active h1 { cursor: pointer; }
-        .admin-active h1:hover { color: var(--admin-gold); text-shadow: 0 0 10px var(--admin-gold); }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; }
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
         input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 10px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
@@ -25,8 +23,8 @@
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
-        .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
-        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; z-index: 2; color: #fff; text-transform: uppercase; }
+        .card.report { border-style: dashed; }
+        .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; color: #fff; text-transform: uppercase; }
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
@@ -34,25 +32,18 @@
         .del-btn { background: var(--danger); color: #fff; }
         #template-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .modal-content { background: #0f172a; border: 2px solid var(--admin-gold); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 320px; }
-        .modal-content h3 { font-family: 'Orbitron'; color: var(--admin-gold); margin-bottom: 20px; }
-        .modal-content select { width: 100%; margin-bottom: 20px; border: 1px solid var(--admin-gold); }
-        .modal-btn { padding: 10px 20px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-family: 'Orbitron'; }
-        .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; text-align: left; }
-        .edit-overlay label { font-size: 0.7rem; color: var(--admin-gold); font-weight: bold; margin-left: 5px; }
-        .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
-        .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
+        .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); text-align: left; overflow-y: auto; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header">
-        <h1 id="header-title">LTGAME MASTER OPS</h1>
+        <h1>LTGAME MASTER OPS</h1>
         <div id="admin-bar">
             <input type="text" id="new-name" placeholder="Item Name">
-            <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold;">+ FOLDER</button>
-            <button onclick="addItem('report')" style="background:var(--success); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold;">+ REPORT</button>
-            <button onclick="logoutAdmin()" style="background:#444; color:#fff; padding:10px; margin-left:10px; border-radius:4px;">EXIT ADMIN</button>
+            <button onclick="addItem('folder')" style="background:var(--folder-blue); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold; border:none; cursor:pointer;">+ FOLDER</button>
+            <button onclick="addItem('report')" style="background:var(--success); color:#000; padding:10px 15px; border-radius:4px; font-weight:bold; border:none; cursor:pointer;">+ REPORT</button>
+            <button onclick="logoutAdmin()" style="background:#444; color:#fff; padding:10px; margin-left:10px; border-radius:4px; border:none; cursor:pointer;">EXIT</button>
         </div>
         <div class="nav-bar">
             <button class="nav-btn-home" onclick="jumpTo(-1)">PROJECT</button>
@@ -64,12 +55,11 @@
 
 <div id="template-modal">
     <div class="modal-content">
-        <h3>SELECT TEMPLATE</h3>
-        <p id="loading-msg" style="color: #666; font-size: 0.8rem;">Scanning templates folder...</p>
-        <select id="tpl-dropdown" style="display:none;"></select>
-        <div id="modal-actions" style="display:none; gap:10px; justify-content:center;">
-            <button class="modal-btn" style="background:var(--success); color:#000;" onclick="confirmAddReport()">OK</button>
-            <button class="modal-btn" style="background:#444; color:#fff;" onclick="closeModal()">CANCEL</button>
+        <h3 style="font-family:'Orbitron'; color:var(--admin-gold);">SELECT TEMPLATE</h3>
+        <select id="tpl-dropdown"></select>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button onclick="confirmAddReport()" style="background:var(--success); padding:10px 20px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">OK</button>
+            <button onclick="closeModal()" style="background:#444; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">CANCEL</button>
         </div>
     </div>
 </div>
@@ -79,7 +69,6 @@
     const firebaseConfig = { apiKey: "AIzaSyDRRJ7U-1HUOqXz5TJ7k9WY1EBmqvRy3jA", databaseURL: "https://g2e-macau-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
     const GH_REPO = "kaig898/LTGameTechReport";
 
     let allData = {}, path = [], tempName = "";
@@ -99,20 +88,17 @@
 
         Object.keys(curr).forEach(key => {
             if(key === '_meta') return;
-            const item = curr[key], meta = item._meta || {}, isReport = meta.type === 'report';
-            const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
+            const meta = curr[key]._meta || {};
+            const isReport = meta.type === 'report';
+            const color = isReport ? "#39ff14" : "#00f2ff";
             const div = document.createElement('div');
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
-            
             div.onclick = (e) => {
-                // 如果撳緊 Admin 掣，唔好跳轉
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
                 if (isReport) { window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}`; }
                 else { path.push(key); render(); }
             };
-            
-            // 修正：齒輪 onclick 一定要 call 到 showEdit
             div.innerHTML = `
                 <div class="admin-btns">
                     <div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div>
@@ -131,86 +117,62 @@
         if(t === 'report') {
             tempName = n;
             document.getElementById('template-modal').style.display = 'flex';
-            document.getElementById('loading-msg').style.display = 'block';
-            document.getElementById('tpl-dropdown').style.display = 'none';
-            document.getElementById('modal-actions').style.display = 'none';
-            await scanTemplates();
+            const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/templates`);
+            const files = await res.json();
+            const dropdown = document.getElementById('tpl-dropdown');
+            dropdown.innerHTML = "";
+            files.forEach(f => { if(f.name.endsWith('.html')) dropdown.innerHTML += `<option value="templates/${f.name}">${f.name}</option>`; });
         } else {
             saveItem(n, 'folder', 'index.html');
         }
     }
 
-    async function scanTemplates() {
-        const url = `https://api.github.com/repos/${GH_REPO}/contents/templates`;
-        try {
-            const response = await fetch(url);
-            const files = await response.json();
-            const dropdown = document.getElementById('tpl-dropdown');
-            dropdown.innerHTML = "";
-            files.forEach(file => {
-                if(file.name.endsWith('.html')) {
-                    dropdown.innerHTML += `<option value="templates/${file.name}">${file.name}</option>`;
-                }
-            });
-            document.getElementById('loading-msg').style.display = 'none';
-            dropdown.style.display = 'block';
-            document.getElementById('modal-actions').style.display = 'flex';
-        } catch (error) {
-            console.error("Scan Error:", error);
-            closeModal();
-        }
-    }
-
     function confirmAddReport() {
-        const selectedPath = document.getElementById('tpl-dropdown').value;
-        saveItem(tempName, 'report', selectedPath);
+        const tpl = document.getElementById('tpl-dropdown').value;
+        saveItem(tempName, 'report', tpl);
         closeModal();
     }
 
     function saveItem(name, type, html) {
-        let ref = db.ref('v15_data');
-        path.forEach(p => ref = ref.child(p));
-        ref.child(name).update({ _meta: { type: type, color: type==='report'?"#39ff14":"#00f2ff", targetHtml: html, displayLabel: type.toUpperCase() } });
+        let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p));
+        ref.child(name).update({ _meta: { type: type, targetHtml: html } });
         document.getElementById('new-name').value = '';
     }
 
-    function closeModal() { document.getElementById('template-modal').style.display = 'none'; }
-    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
-    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-    function delItem(e, k) { e.stopPropagation(); if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-
-    // 修正：確保 showEdit 彈窗邏輯存在
     function showEdit(e, key) {
         e.stopPropagation();
         const parent = e.target.closest('.card');
         let curr = allData; path.forEach(p => curr = curr[p]);
         const meta = curr[key]._meta || {};
-        
         const overlay = document.createElement('div');
         overlay.className = 'edit-overlay';
         overlay.innerHTML = `
             <label>NAME</label><input type="text" id="ed-n" value="${key}">
             <label>HTML PATH</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
-            <label>COLOR</label><input type="color" id="ed-c" value="${meta.color||'#00f2ff'}">
-            <div class="overlay-btns">
-                <button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button>
-                <button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="saveEdit(event, '${key}')" style="background:var(--success); flex:1; padding:10px; border:none; font-weight:bold; border-radius:4px; cursor:pointer;">SAVE</button>
+                <button onclick="this.parentElement.parentElement.remove()" style="background:#444; color:#fff; flex:1; border:none; border-radius:4px; cursor:pointer;">CANCEL</button>
             </div>
         `;
         parent.appendChild(overlay);
     }
 
     function saveEdit(e, oldKey) {
-        e.stopPropagation();
-        const newN = document.getElementById('ed-n').value.trim(), newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value;
-        if(!newN || !isAdmin) return;
+        const newN = document.getElementById('ed-n').value.trim();
+        const newH = document.getElementById('ed-h').value.trim();
+        if(!newN) return;
         let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p));
         ref.child(oldKey).once('value', s => {
             let val = s.val() || {}; if(!val._meta) val._meta = {};
-            val._meta.color = newC; val._meta.targetHtml = newH;
+            val._meta.targetHtml = newH;
             ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove();
         });
     }
+
+    function closeModal() { document.getElementById('template-modal').style.display = 'none'; }
+    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
+    function delItem(e, k) { e.stopPropagation(); if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
+    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
 </script>
 </body>
 </html>
