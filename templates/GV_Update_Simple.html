@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GV Update Status</title>
+    <title>GV Update Status (Scheduled)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -18,29 +18,26 @@
         
         .back-btn { background: #334155; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; }
         
-        #admin-panel { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; gap: 10px; }
+        #admin-panel { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; gap: 10px; flex-wrap: wrap; }
         .admin-active #admin-panel { display: flex; align-items: center; }
-        input.admin-in { background: #000; border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 4px; width: 140px; }
+        input.admin-in { background: #000; border: 1px solid var(--accent); color: #fff; padding: 8px; border-radius: 4px; font-size: 0.9rem; }
         
-        /* 1行1部機嘅列表 */
         .unit-list { display: flex; flex-direction: column; gap: 8px; }
         .unit-row { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; transition: 0.2s; }
-        .unit-row:hover { border-color: var(--accent); }
+        .unit-row.waiting { opacity: 0.4; border-style: dashed; } /* 預覽排程中嘅機 */
         
-        .unit-name { font-family: 'Orbitron'; font-size: 1rem; color: #fff; width: 120px; }
-        
-        /* 同事輸入進度位 */
+        .unit-name { font-family: 'Orbitron'; font-size: 1rem; color: #fff; width: 150px; }
         .progress-section { flex: 1; display: flex; align-items: center; gap: 15px; }
-        .p-bar-bg { flex: 1; background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .p-bar-bg { flex: 1; background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; }
         .p-bar-fill { height: 100%; background: var(--success); transition: width 0.4s; }
         
-        input.done-input { background: #000; border: 1px solid #444; color: var(--success); font-family: 'Orbitron'; width: 70px; text-align: center; padding: 5px; border-radius: 4px; font-size: 1rem; }
-        input.done-input:focus { border-color: var(--success); outline: none; }
-        
-        .total-label { font-family: 'Orbitron'; font-size: 0.9rem; color: #666; width: 60px; }
+        input.done-input { background: #000; border: 1px solid #444; color: var(--success); font-family: 'Orbitron'; width: 65px; text-align: center; padding: 5px; border-radius: 4px; }
+        .total-label { font-family: 'Orbitron'; font-size: 0.8rem; color: #666; width: 50px; }
         
         .del-btn { background: #ff003c; color: #fff; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: none; font-weight: bold; }
         .admin-active .del-btn { display: block; }
+        
+        .schedule-tag { font-size: 0.65rem; color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px; border-radius: 3px; font-family: 'Orbitron'; }
     </style>
 </head>
 <body>
@@ -54,9 +51,10 @@
         </div>
         
         <div id="admin-panel">
-            <input type="text" id="new-unit" class="admin-in" placeholder="Machine Name">
-            <input type="number" id="new-total" class="admin-in" placeholder="Total (e.g. 10)" style="width: 80px;">
-            <button onclick="addUnit()" style="background:var(--accent); color:#000; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">+ ADD MACHINE</button>
+            <input type="text" id="new-unit" class="admin-in" placeholder="Machine Group Name" style="width:160px;">
+            <input type="number" id="new-total" class="admin-in" placeholder="Total" style="width:70px;">
+            <input type="date" id="new-date" class="admin-in" title="Schedule Date">
+            <button onclick="addUnit()" style="background:var(--accent); color:#000; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">+ SCHEDULE</button>
         </div>
     </div>
 
@@ -76,7 +74,11 @@
     const dbTasks = db.ref('v15_data/' + pathRef + '/tasks');
 
     document.getElementById('casino-title').innerText = venue.toUpperCase().replace(/_/g, ' ');
-    if(isAdmin) document.getElementById('main-ui').classList.add('admin-active');
+    if(isAdmin) {
+        document.getElementById('main-ui').classList.add('admin-active');
+        // 預設今日日期
+        document.getElementById('new-date').value = new Date().toISOString().split('T')[0];
+    }
 
     dbTasks.on('value', s => {
         const data = s.val() || {};
@@ -84,21 +86,34 @@
         listDiv.innerHTML = "";
         
         let grandTotal = 0, grandDone = 0;
+        const now = new Date().toISOString().split('T')[0]; // 今日日期 YYYY-MM-DD
 
         Object.keys(data).forEach(key => {
             const item = data[key];
+            const schDate = item.schDate || "2026-01-01";
+            const isReady = (now >= schDate); // 判斷日期到咗未
+
+            // 如果日期未到，且唔係 Admin，就完全唔顯示
+            if (!isReady && !isAdmin) return;
+
             const done = parseInt(item.doneCount) || 0;
             const total = parseInt(item.totalCount) || 0;
             const per = total > 0 ? Math.round((done / total) * 100) : 0;
             
-            grandDone += done;
-            grandTotal += total;
+            // 只有過咗排程時間嘅機先計入總進度
+            if (isReady) {
+                grandDone += done;
+                grandTotal += total;
+            }
 
             const row = document.createElement('div');
-            row.className = 'unit-row';
+            row.className = `unit-row ${!isReady ? 'waiting' : ''}`;
             row.innerHTML = `
-                <div class="unit-name">${key}</div>
-                <div class="progress-section">
+                <div class="unit-name">
+                    ${key}
+                    ${!isReady ? `<div class="schedule-tag">START: ${schDate}</div>` : ''}
+                </div>
+                <div class="progress-section" style="${!isReady ? 'pointer-events:none; opacity:0.3' : ''}">
                     <div class="p-bar-bg"><div class="p-bar-fill" style="width:${per > 100 ? 100 : per}%"></div></div>
                     <input type="number" class="done-input" value="${done}" onchange="updateProgress('${key}', this.value, ${total})">
                     <div class="total-label">/ ${total}</div>
@@ -111,19 +126,14 @@
         const overall = grandTotal > 0 ? Math.round((grandDone / grandTotal) * 100) : 0;
         document.getElementById('overall-prog').innerText = overall + '%';
         
-        // 重要：將數據寫入首頁識讀嘅位，等首頁進度條識郁
-        db.ref('v15_data/' + pathRef + '/_meta').update({
-            totalMachines: grandTotal,
-            // 模擬首頁計數 logic：首頁會數 tasks 入面有幾多個 OK
-            // 為左簡單，我地直接喺 meta 存一個數字等 index 讀
-        });
+        // 更新 meta 等首頁讀取
+        db.ref('v15_data/' + pathRef + '/_meta').update({ totalMachines: grandTotal });
     });
 
     function updateProgress(id, val, total) {
         const v = parseInt(val) || 0;
         dbTasks.child(id).update({ 
             doneCount: v,
-            // 同時更新 hw/sw 狀態等首頁進度條計到數
             hw: v >= total ? 'OK' : 'PND',
             sw: v >= total ? 'OK' : 'PND'
         });
@@ -132,8 +142,9 @@
     function addUnit() {
         const name = document.getElementById('new-unit').value.trim();
         const total = document.getElementById('new-total').value.trim();
-        if(!name || !total) return;
-        dbTasks.child(name).set({ doneCount: 0, totalCount: total, hw: 'PND', sw: 'PND' });
+        const sDate = document.getElementById('new-date').value;
+        if(!name || !total || !sDate) return;
+        dbTasks.child(name).set({ doneCount: 0, totalCount: total, schDate: sDate, hw: 'PND', sw: 'PND' });
         document.getElementById('new-unit').value = "";
         document.getElementById('new-total').value = "";
     }
