@@ -16,12 +16,11 @@
         .admin-active h1 { cursor: pointer; }
         .admin-active h1:hover { color: var(--admin-gold); text-shadow: 0 0 10px var(--admin-gold); }
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
-        input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 8px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
+        input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 10px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
         .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; text-transform: uppercase; }
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
         .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
-        .path-sep { color: #555; margin: 0 5px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
@@ -35,10 +34,12 @@
         .del-btn { background: var(--danger); color: #fff; }
         .type-tag { position: absolute; top: 12px; left: 12px; font-size: 0.65rem; padding: 3px 8px; background: #000; border-radius: 4px; font-family: 'Orbitron'; color: var(--c); border: 1px solid var(--c); font-weight: bold; z-index: 3; }
         .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; padding: 10px; gap: 5px; z-index: 200; border: 1px solid var(--admin-gold); overflow-y: auto; text-align: left; }
-        .edit-overlay label { font-size: 0.7rem; color: var(--admin-gold); font-weight: bold; margin-left: 5px; }
-        .overlay-btns { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 10px; }
-        .overlay-btns button { flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
-        #ghost-trigger { position: fixed; bottom: 2px; right: 2px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.02); cursor: pointer; z-index: 2147483647; }
+        
+        /* 選擇模板用的彈窗 */
+        #template-selector { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0f172a; border: 2px solid var(--admin-gold); padding: 30px; border-radius: 12px; z-index: 3000; display: none; box-shadow: 0 0 50px rgba(0,0,0,0.8); text-align: center; }
+        #template-selector h3 { font-family: 'Orbitron'; color: var(--admin-gold); margin-top: 0; }
+        .select-btn { background: var(--success); color: #000; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin: 10px; }
+        .cancel-btn { background: #444; color: #fff; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin: 10px; }
     </style>
 </head>
 <body>
@@ -58,7 +59,19 @@
     </div>
     <div id="view" class="grid"></div>
 </div>
-<div id="ghost-trigger" title="Admin Access" onclick="location.href='admin.html'"></div>
+
+<!-- 選擇模板的彈窗 -->
+<div id="template-selector">
+    <h3>SELECT TEMPLATE</h3>
+    <select id="template-list" style="width: 250px; margin-bottom: 20px;">
+        <option value="templates/G2E_Simple.html">G2E Simple</option>
+        <option value="templates/GV_Simple.html">GV Simple</option>
+        <option value="G2E_Macau.html">Master (G2E Macau)</option>
+    </select>
+    <br>
+    <button class="select-btn" onclick="confirmTemplate()">CONFIRM</button>
+    <button class="cancel-btn" onclick="closeSelector()">CANCEL</button>
+</div>
 
 <script>
     let isAdmin = localStorage.getItem('ltgame_token') === 'JASON_SECURE_TOKEN_2026';
@@ -68,12 +81,13 @@
     
     let allData = {}, path = [];
     let config = { title: "LTGAME MASTER OPS", rootName: "PROJECT" };
+    let tempItemName = ""; // 用來暫存新項目的名字
 
     db.ref('v15_config').on('value', s => {
         if(s.val()) {
             config = s.val();
-            document.getElementById('header-title').innerText = config.title || "LTGAME MASTER OPS";
-            document.getElementById('root-btn-text').innerText = config.rootName || "PROJECT";
+            document.getElementById('header-title').innerText = config.title;
+            document.getElementById('root-btn-text').innerText = config.rootName;
         }
         render();
     });
@@ -88,8 +102,7 @@
         path.forEach(p => { if(curr[p]) curr = curr[p]; });
         
         const pathDiv = document.getElementById('path-display');
-        const displayRoot = config.rootName || "PROJECT";
-        pathDiv.innerHTML = `<span class="path-sep">[</span> <span class="path-link" onclick="jumpTo(-1)">${displayRoot}</span> <span class="path-sep">]</span>`;
+        pathDiv.innerHTML = `<span style="color:#555; margin:0 5px;">[</span> <span class="path-link" onclick="jumpTo(-1)">${config.rootName}</span> <span style="color:#555; margin:0 5px;">]</span>`;
         path.forEach((p, index) => { pathDiv.innerHTML += ` > <span class="path-link" onclick="jumpTo(${index})">${p}</span>`; });
 
         Object.keys(curr).forEach(key => {
@@ -102,10 +115,7 @@
             div.style.setProperty('--c', color);
             div.onclick = (e) => {
                 if (e.target.closest('.admin-btns') || e.target.closest('.edit-overlay')) return;
-                if (isReport) { 
-                    // 直接跳轉到設定的路徑
-                    window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; 
-                }
+                if (isReport) { window.location.href = `${meta.targetHtml}?p=${path.join(',')}&v=${key}&admin=${isAdmin}`; }
                 else { path.push(key); render(); }
             };
             div.innerHTML = `<div class="admin-btns"><div class="tool-btn edit-btn" onclick="showEdit(event,'${key}')">⚙️</div><div class="tool-btn del-btn" onclick="delItem(event,'${key}')">✕</div></div><div class="type-tag" style="color:${color}; border-color:${color}">${meta.displayLabel || (isReport ? 'REPORT' : 'FOLDER')}</div><div class="name-text">${key}</div>`;
@@ -113,36 +123,45 @@
         });
     }
 
-    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
-    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
-    
+    // 當點擊 + REPORT 時
     function addItem(t) { 
         if(!isAdmin) return; 
         const n = document.getElementById('new-name').value.trim(); 
         if(!n) return; 
-        let defaultPath = "G2E_Macau.html"; 
         
         if(t === 'report') {
-            // 新加 Project 時問你用邊個 Template
-            const choice = prompt("ENTER TEMPLATE PATH (e.g., templates/G2E_Simple.html):", "templates/G2E_Simple.html");
-            if(choice) defaultPath = choice.trim();
+            tempItemName = n; // 暫存名字
+            document.getElementById('template-selector').style.display = 'block'; // 顯示下拉選單彈窗
+        } else {
+            saveToFirebase(n, 'folder', 'index.html'); // Folder 直接加
         }
+    }
 
+    function confirmTemplate() {
+        const selectedPath = document.getElementById('template-list').value;
+        saveToFirebase(tempItemName, 'report', selectedPath);
+        closeSelector();
+    }
+
+    function saveToFirebase(name, type, htmlPath) {
         let ref = db.ref('v15_data'); 
         path.forEach(p => ref = ref.child(p)); 
-        ref.child(n).update({ 
+        ref.child(name).update({ 
             _meta: { 
-                type: t, 
-                color: t==='report'?"#39ff14":"#00f2ff", 
-                targetHtml: defaultPath, 
-                displayLabel: t==='report'?"REPORT":"FOLDER" 
+                type: type, 
+                color: type==='report'?"#39ff14":"#00f2ff", 
+                targetHtml: htmlPath, 
+                displayLabel: type==='report'?"REPORT":"FOLDER" 
             } 
         }); 
         document.getElementById('new-name').value = ''; 
     }
 
+    function closeSelector() { document.getElementById('template-selector').style.display = 'none'; }
+    function jumpTo(i) { path = path.slice(0, i + 1); render(); }
+    function logoutAdmin() { localStorage.removeItem('ltgame_token'); location.reload(); }
     function delItem(e, k) { e.stopPropagation(); if(confirm(`Delete ${k}?`)) { let r = db.ref('v15_data'); path.forEach(p=>r=r.child(p)); r.child(k).remove(); } }
-    
+
     function showEdit(e, key) {
         e.stopPropagation();
         const parent = e.target.closest('.card');
@@ -151,11 +170,10 @@
         const overlay = document.createElement('div');
         overlay.className = 'edit-overlay';
         overlay.innerHTML = `
-            <label>NAME</label><input type="text" id="ed-n" value="${key}">
-            <label>LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || (meta.type==='report'?'REPORT':'FOLDER')}">
-            <label>TYPE</label><select id="ed-t"><option value="folder" ${meta.type==='folder'?'selected':''}>FOLDER</option><option value="report" ${meta.type==='report'?'selected':''}>REPORT</option></select>
-            <label>HTML PATH</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
-            <label>COLOR</label><input type="color" id="ed-c" value="${meta.color||'#00f2ff'}">
+            <label style="color:var(--admin-gold); font-size:0.7rem; font-weight:bold;">NAME</label><input type="text" id="ed-n" value="${key}">
+            <label style="color:var(--admin-gold); font-size:0.7rem; font-weight:bold;">LABEL</label><input type="text" id="ed-l" value="${meta.displayLabel || ''}">
+            <label style="color:var(--admin-gold); font-size:0.7rem; font-weight:bold;">HTML</label><input type="text" id="ed-h" value="${meta.targetHtml||''}">
+            <label style="color:var(--admin-gold); font-size:0.7rem; font-weight:bold;">COLOR</label><input type="color" id="ed-c" value="${meta.color||'#00f2ff'}">
             <div class="overlay-btns">
                 <button onclick="saveEdit(event, '${key}')" style="background:var(--admin-gold); color:#000;">SAVE</button>
                 <button onclick="event.stopPropagation(); this.parentElement.parentElement.remove()" style="background:#444; color:#fff;">CANCEL</button>
@@ -166,12 +184,12 @@
 
     function saveEdit(e, oldKey) {
         e.stopPropagation();
-        const newN = document.getElementById('ed-n').value.trim(), newL = document.getElementById('ed-l').value.trim(), newT = document.getElementById('ed-t').value, newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value;
+        const newN = document.getElementById('ed-n').value.trim(), newL = document.getElementById('ed-l').value.trim(), newH = document.getElementById('ed-h').value.trim(), newC = document.getElementById('ed-c').value;
         if(!newN || !isAdmin) return;
         let ref = db.ref('v15_data'); path.forEach(p => ref = ref.child(p));
         ref.child(oldKey).once('value', s => {
             let val = s.val() || {}; if(!val._meta) val._meta = {};
-            val._meta.type = newT; val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = (newT === 'report') ? newH : "";
+            val._meta.displayLabel = newL; val._meta.color = newC; val._meta.targetHtml = newH;
             ref.child(newN).set(val); if(newN !== oldKey) ref.child(oldKey).remove();
         });
     }
