@@ -15,30 +15,23 @@
         h1 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; letter-spacing: 5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; transition: 0.3s; }
         .admin-active h1 { cursor: pointer; }
         .admin-active h1:hover { color: var(--admin-gold); text-shadow: 0 0 10px var(--admin-gold); }
-
         #admin-bar { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--admin-gold); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
         input, select { background: #000; border: 1px solid #334155; color: #fff; padding: 10px; margin: 5px; border-radius: 4px; font-family: 'Rajdhani'; width: 180px; }
-
         .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 0.9rem; }
         .nav-btn-home { background: var(--admin-gold); color: #000; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; text-transform: uppercase; }
-        
         #path-display { color: #aaa; letter-spacing: 1px; font-size: 0.9rem; }
         .path-link { color: var(--folder-blue); cursor: pointer; text-decoration: underline; }
-
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-
         .card { position: relative; aspect-ratio: 1/1; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: rgba(15, 23, 42, 0.7); border: 2px solid var(--c); }
         .card.folder { border-style: solid; box-shadow: inset 0 0 15px var(--c); }
         .card.report { border-style: dashed; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57, 255, 20, 0.03) 3px, transparent 4px); }
         .card .name-text { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 20px; z-index: 2; color: #fff; text-transform: uppercase; }
-
         .admin-btns { position: absolute; top: 8px; right: 8px; display: none; gap: 8px; z-index: 100; }
         .admin-active .admin-btns { display: flex; }
         .tool-btn { width: 34px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; cursor: pointer; }
         .edit-btn { background: var(--admin-gold); color: #000; }
         .del-btn { background: var(--danger); color: #fff; }
-
         #template-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .modal-content { background: #0f172a; border: 2px solid var(--admin-gold); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 320px; }
         .modal-content h3 { font-family: 'Orbitron'; color: var(--admin-gold); margin-bottom: 20px; }
@@ -84,8 +77,7 @@
     const db = firebase.database();
     
     // --- GitHub 配置 ---
-    const GH_REPO = "kaig898/LTGameTechReport"; // 確認係你個 Repo 路徑
-    const GH_TOKEN = ""; // 如果 Repo 係 Private 就填 Token，Public 就留空
+    const GH_REPO = "kaig898/LTGameTechReport";
 
     let allData = {}, path = [], tempName = "";
 
@@ -106,7 +98,6 @@
             if(key === '_meta') return;
             const item = curr[key], meta = item._meta || {}, isReport = meta.type === 'report';
             const color = meta.color || (isReport ? "#39ff14" : "#00f2ff");
-
             const div = document.createElement('div');
             div.className = `card ${isReport ? 'report' : 'folder'}`;
             div.style.setProperty('--c', color);
@@ -124,34 +115,27 @@
         if(!isAdmin) return;
         const n = document.getElementById('new-name').value.trim();
         if(!n) return;
-        
         if(t === 'report') {
             tempName = n;
             document.getElementById('template-modal').style.display = 'flex';
             document.getElementById('loading-msg').style.display = 'block';
             document.getElementById('tpl-dropdown').style.display = 'none';
             document.getElementById('modal-actions').style.display = 'none';
-            
             await scanTemplates();
         } else {
             saveItem(n, 'folder', 'index.html');
         }
     }
 
-    // --- 自動掃描 GitHub templates 文件夾 ---
     async function scanTemplates() {
         const url = `https://api.github.com/repos/${GH_REPO}/contents/templates`;
-        const headers = GH_TOKEN ? { 'Authorization': `token ${GH_TOKEN}` } : {};
-        
         try {
-            const response = await fetch(url, { headers });
+            const response = await fetch(url);
             const files = await response.json();
             const dropdown = document.getElementById('tpl-dropdown');
             dropdown.innerHTML = "";
             
-            // 加入原本在根目錄的母版作為備選
-            dropdown.innerHTML += `<option value="G2E_Macau.html">G2E_Macau.html (ROOT)</option>`;
-
+            // 淨化：只加入 templates 資料夾入面嘅 .html 檔案
             files.forEach(file => {
                 if(file.name.endsWith('.html')) {
                     dropdown.innerHTML += `<option value="templates/${file.name}">${file.name}</option>`;
@@ -163,7 +147,6 @@
             document.getElementById('modal-actions').style.display = 'flex';
         } catch (error) {
             console.error("Scan Error:", error);
-            alert("Failed to scan templates folder. Check GH_REPO or GH_TOKEN.");
             closeModal();
         }
     }
